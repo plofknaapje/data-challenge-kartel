@@ -1,0 +1,43 @@
+ID      Name        Text            In reply to id      in reply to name
+1       Maria       @AmericanAir    Null                Null
+2       AA          @Maria          1                   Maria
+3       Maria       @AmericanAir    2                   AA
+4       AA          @Maria          3                   Maria
+
+
+conversation_length(4, AA, 0)
+    return conversation_length(3, AA, 0) + 1
+        return conversation_length(2, AA, 0) + 1
+            return conversation_length(1, AA, 0) + 1
+                return 1
+            2
+        3
+    4
+
+{2: 64, 1: 12, 3: 18, 4: 19, 5: 2, 6: 3}
+
+Computational complexity
+
+get_outgoing_volume(n): O(n)
+    O(n)
+
+get_incoming_volume(n): O(n)
+    O(n)
+
+volumes(n): O(n)
+    c
+        O(n)
+        O(n)
+    O(n)
+
+conversation_length(n): O(n log(n))
+    O(n)
+    O(n log(n))
+
+
+conversations(n): O(n^2 log(n)))
+    O(n)
+    O(n)
+    O(n)
+    O(n)
+        O(n log(n))

@@ -64,7 +64,19 @@ for year in [2016, 2017]:
             month_list.append(data[(data['created_at'].dt.year == year) & (data['created_at'].dt.month == month) & (data['created_at'].dt.day == day)].count()[0])
        
         counts[str(year) + str(" ") + str(month)] = month_list 
+drop_months = ["2016 1", "2016 2", "2016 3", "2016 4", "2017 5", "2017 6", "2017 7", "2017 8", "2017 9", "2017 10", "2017 11", "2017 12"]
+counts.pop("2016 1")
+counts.pop("2016 2")
+counts.pop("2016 3")
+counts.pop("2016 4")
 counts.pop("2017 5")
+counts.pop("2017 6")
+counts.pop("2017 7")
+counts.pop("2017 8")
+counts.pop("2017 9")
+counts.pop("2017 10")
+counts.pop("2017 11")
+counts.pop("2017 12")
 print(counts)
 df = pd.DataFrame(data=counts)
 cols = list(df.columns.values)

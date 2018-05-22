@@ -72,22 +72,38 @@ def get_incoming_volume(user_name, date_start, date_end):
 
 def volumes(user_id, user_name, start_date, end_date, interval_length):
     """
-
-    :param user_id:
-    :param user_name:
-    :param start_date:
-    :param end_date:
-    :param interval_length:
-    :return:
+    Gets the amount of tweets from user_id and to user_name between start_date and end_date at interval lengths
+    
+    :param user_id: The id used for meassuring outgoing volume
+    :param user_name: The name used for measuring incoming volume
+    :param start_date: The date from which the count starts in YYYY-MM-DD HH:MM:SS format
+    :param end_date: The date when the counting stops in YYYY-MM-DD HH:MM:SS format
+    :param interval_length: The length of the intervals in days which the data is collected in.
+    :return: A dataframe with columns for the startdate, incoming_volume, outgoing_volume, user_id and user_name
     """
 
     volume_dict = {'date':[], 'incoming_vol':[],'outgoing_vol':[], 'user_id':[], 'user_name':[]}
-
+    
+    
+    """
+    Datetime explanation:
+        datetime.strptime(datetimestr, format) turns the datetimestr string into
+        a datetime object according to the format.
+        
+        timedelta is a type of datetime object which can be added to a datetime object to increase it
+        by a specific amount like 1 day or 1 week etc.
+        
+        When you have a datetime object dt, you can turn it into a string like so:
+        dt.strftime(format) where it will return the given format."""
+    
+    ## Start and end are turned into datetime objects
     start = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
     end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+    ## The length of the interval is turned into a time delta to be added to the datetime objects
     delta = timedelta(days = interval_length)
     end = start + delta
     while start < end_date:
+        ## Start and end datetime objects are used to create start and end strings
         start_str = start.strftime('%Y-%m-%d %H:%M:%S')
         end_str = end.strftime('%Y-%m-%d %H:%M:%S')
         volume_dict['date'].append(start_str)
@@ -95,10 +111,11 @@ def volumes(user_id, user_name, start_date, end_date, interval_length):
         volume_dict['incoming_vol'].append(get_incoming_volume(user_name, start_str, end_str)[0][0])
         volume_dict['user_id'].append(user_id)
         volume_dict['user_name'].append(user_name)
+        ## Start and end datetime objects are increased with the delta to prepare for the next interval
         start = start + delta
         end = end + delta
-        print(start_str)
 
+    
     df = pd.DataFrame(data=volume_dict)
     return df
 
@@ -118,17 +135,21 @@ def conversation_length(tweet_id, client_id, length=0):
         tweet = cursor.fetchall()[0]
         database.commit()
         tweet_id = tweet[0]
-        created_at = tweet[1]
         user_id = tweet[2]
         in_reply_to_tweet_id = tweet[4]
-        in_reply_to_user_id = tweet[5]
+        ## If the tweet is not a reply to another tweet, it is either the begin or
+        ## it is a reply to a user so the recursion gets broken.
         if in_reply_to_tweet_id is None:
+            ## If the current user is our client, then the tweet is probably a 
+            ## bad reply, so we count this tweet for two. Otherwise, it is the
+            ## start tweet.
             if user_id == client_id:
                 return length + 2
             else:
                 return length + 1
         else:
             return conversation_length(in_reply_to_tweet_id, client_id, length) + 1
+    ## Indexerror means no tweet was returned so the tweet is lost in an API mallfunction
     except IndexError:
         return length + 1
 
@@ -144,10 +165,15 @@ def conversations(client_id, client_name, start_date, end_date, use_name):
     :return: Dictionary with counts of conversation lengths
     """
     lengths = {}
+    ## See volumes for a datetime explanation
+    
+    ## Start and end are datetime objects from the input variables.
     start = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
     end_date = datetime.strptime(end_date, '%Y-%m-%d %H:%M:%S')
+    ## Here, their scope is widened to account for long conversations
     start_ext = start - timedelta(days = 7)
     end_ext = end_date + timedelta(days = 7)
+    ## Datetime strings are generated for use in the queries
     start_str = start.strftime('%Y-%m-%d %H:%M:%S')
     end_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
     start_ext_str = start_ext.strftime('%Y-%m-%d %H:%M:%S')

@@ -1,7 +1,8 @@
 ### Libs ###
 import access
+import sqlite3
 import pandas as pd
-import numpy as np 
+import numpy as np
 from datetime import datetime, timedelta
 
 
@@ -202,7 +203,8 @@ def conversations(client_id, client_name, start_date, end_date, use_name):
 #print(find_origin_tweet('757691415958843392', american_air_id, 0))
 
 #print(conversations(american_air_id, american_air, '2016-05-30 00:00:00', '2017-05-01 00:00:00', False))
-
+"""
+@Robin why is this block of code in here?
 if True:
     data = {'week':[], 'conversations':[]}
     week = 1
@@ -223,6 +225,7 @@ if True:
         print(week)
 
     print(data)
+"""
 
 
 def response_time(airline, month):
@@ -233,17 +236,10 @@ def response_time(airline, month):
     :return: Mean response time of an airline in a certain month
     """
 
-    query1 = """
-        SELECT *
-        FROM tweets
-        WHERE user_id = '{}' AND in_reply_to_tweet_id IS NOT NULL 
-        """.format(airline)
+    query1 = """SELECT * FROM tweets WHERE user_id = '{}' AND 
+                in_reply_to_tweet_id IS NOT NULL """.format(airline)
 
-    query2 = """
-        SELECT *
-        FROM tweets
-        WHERE in_reply_to_user_id = '{}'
-        """.format(airline)
+    query2 = """SELECT * FROM tweets WHERE in_reply_to_user_id = '{}' """.format(airline)
 
     tweet_airline = pd.read_sql_query(query1, database)
     tweet_customer = pd.read_sql_query(query2, database)
@@ -262,10 +258,25 @@ def response_time(airline, month):
     tweet_link['response_time'] = 0
     tweet_link['airline_time'] = pd.to_datetime(tweet_link['airline_time'])
     tweet_link['customer_time'] = pd.to_datetime(tweet_link['customer_time'])
-    tweet_link = tweet_link[tweet_link['airline_time'].dt.month == month]
+    # For the code below, comment out what you DONT need
+    # tweet_link = tweet_link[tweet_link['airline_time'].dt.month == month] # For calculating per month
+    # tweet_link = tweet_link[tweet_link['airline_time'].dt.weekday == month] # For calculating per day of the week
+    tweet_link = tweet_link[tweet_link['airline_time'].dt.hour == month] # For calculating per hour
     tweet_link['response_time'] = tweet_link['airline_time'] - tweet_link['customer_time']
     tweet_link['response_time'] = tweet_link['response_time'] / np.timedelta64(1, 's')
     return tweet_link['response_time'].median()
 
+# Below are response times per day of the week in the order: mo,tu,we,thu,fr,sat,sun
+reptimeperday = [1573.0, 1175.0, 936.0, 1475.0, 1826.0, 1273.0, 1178.0]
+"""for i in range(0,7):
+    reptimeperday.append(response_time("22536055", i))
+print(reptimeperday)
+"""
+reptimeperhour = [1704.0, 1882.0, 1552.0, 1350.0, 993.0, 873.0, 951.0, 725.0, 588.0, 345.0, 304.0, 487.5,
+                  693.5, 813.0, 1031.0, 1304.0, 1489.0, 1613.5, 1597.0, 1701.0, 1847.0, 1749.0, 1673.0, 1719.0]
+"""for i in range(0,24):
+    reptimeperhour.append(response_time("22536055", i))
+print(reptimeperhour)
+"""
 
 database.close()

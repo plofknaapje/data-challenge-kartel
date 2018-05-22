@@ -14,7 +14,7 @@ in_reply_to_user_id TEXT,
 lang TEXT
 """
 
-### Constants ###
+# Constants #
 american_air_id = "22536055"
 american_air = "AmericanAir"
 database = access.db
@@ -26,6 +26,7 @@ airlines_other_id = ["56377143", "106062176", "18332190", "124476322", "26223583
                      "1542862735", "253340062", "218730857", "45621423", "20626359"]
 airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "AirBerlin", "AirBerlin assist", "easyJet",
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
+
 
 def get_outgoing_volume(user_id, date_start, date_end):
     """
@@ -46,6 +47,7 @@ def get_outgoing_volume(user_id, date_start, date_end):
     database.commit()
     return result
 
+
 def get_incoming_volume(user_name, date_start, date_end):
     """
     Gets the amount of tweets which mention this user in the given timespan
@@ -54,6 +56,7 @@ def get_incoming_volume(user_name, date_start, date_end):
     :param date_end: Datetime string in YYYY-MM-DD HH:MM:SS format
     :return: Amount of tweets which comply to all the requirements
     """
+
     query = """SELECT COUNT(*) FROM tweets WHERE text LIKE '%@{}%' AND 
                datetime(created_at) >= datetime('{}') AND 
                datetime(created_at) < datetime('{}');""".format(user_name, date_start, date_end)
@@ -219,6 +222,49 @@ if True:
         print(week)
 
     print(data)
+
+
+def response_time(airline, month):
+    """
+    Prints the mean response time of a certain airline in a certain month
+    :param airline: ID of the airline
+    :param month: Integer of the month
+    :return: Mean response time of an airline in a certain month
+    """
+
+    query1 = """
+        SELECT *
+        FROM tweets
+        WHERE user_id = '{}' AND in_reply_to_tweet_id IS NOT NULL 
+        """.format(airline)
+
+    query2 = """
+        SELECT *
+        FROM tweets
+        WHERE in_reply_to_user_id = '{}'
+        """.format(airline)
+
+    tweet_airline = pd.read_sql_query(query1, database)
+    tweet_customer = pd.read_sql_query(query2, database)
+
+    conn = sqlite3.connect('response_time.db')
+
+    tweet_airline.to_sql('airline', conn, if_exists='replace')
+    tweet_customer.to_sql('customer', conn, if_exists='replace')
+
+    query3 = """SELECT airline.in_reply_to_tweet_id, airline.created_at as 
+                airline_time, customer.tweet_id, customer.created_at as customer_time
+                FROM airline, customer WHERE airline.in_reply_to_tweet_id = customer.tweet_id AND 
+                airline.created_at > customer.created_at """
+
+    tweet_link = pd.read_sql_query(query3, conn)
+    tweet_link['response_time'] = 0
+    tweet_link['airline_time'] = pd.to_datetime(tweet_link['airline_time'])
+    tweet_link['customer_time'] = pd.to_datetime(tweet_link['customer_time'])
+    tweet_link = tweet_link[tweet_link['airline_time'].dt.month == month]
+    tweet_link['response_time'] = tweet_link['airline_time'] - tweet_link['customer_time']
+    tweet_link['response_time'] = tweet_link['response_time'] / np.timedelta64(1, 's')
+    return tweet_link['response_time'].median()
 
 
 database.close()

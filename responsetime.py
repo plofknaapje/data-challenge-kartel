@@ -5,6 +5,30 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
+"""
+tweet_id TEXT PRIMARY KEY, 
+created_at TEXT,
+user_id TEXT, 
+text TEXT, 
+in_reply_to_tweet_id TEXT, 
+in_reply_to_user_id TEXT, 
+lang TEXT
+"""
+
+# Constants #
+american_air_id = "22536055"
+american_air = "AmericanAir"
+database = access.db
+airlines_id = ["56377143", "106062176", "18332190", "22536055", "124476322", "26223583", "2182373406", "38676903",
+               "1542862735", "253340062", "218730857", "45621423", "20626359"]
+airlines_names = ["KLM", "AirFrance", "British_Airways", "AmericanAir", "Lufthansa", "AirBerlin", "AirBerlin assist",
+                  "easyJet", "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
+airlines_other_id = ["56377143", "106062176", "18332190", "124476322", "26223583", "2182373406", "38676903",
+                     "1542862735", "253340062", "218730857", "45621423", "20626359"]
+airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "AirBerlin", "AirBerlin assist", "easyJet",
+                        "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
+
+
 
 def response_time(airline, month):
     """

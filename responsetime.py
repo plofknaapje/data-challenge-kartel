@@ -53,6 +53,7 @@ print(reptimeperday)
 """
 reptimeperhour = [1704.0, 1882.0, 1552.0, 1350.0, 993.0, 873.0, 951.0, 725.0, 588.0, 345.0, 304.0, 487.5,
                   693.5, 813.0, 1031.0, 1304.0, 1489.0, 1613.5, 1597.0, 1701.0, 1847.0, 1749.0, 1673.0, 1719.0]
-for i in range(0,24):
+"""for i in range(0,24):
     reptimeperhour.append(response_time("22536055", i))
+"""
 print(reptimeperhour)

@@ -30,6 +30,7 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 
 
+
 def get_outgoing_volume(user_id, date_start, date_end):
     """
     Gets the amount of tweets sent by the user in the given timespan

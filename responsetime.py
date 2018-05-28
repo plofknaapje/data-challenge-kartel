@@ -68,7 +68,11 @@ def response_time(airline, month):
     tweet_link['response_time'] = tweet_link['response_time'] / np.timedelta64(1, 's')
     return tweet_link['response_time'].median()
 
-
+# Below is the for loop for response times per month of the dayh per airline
+"""for x in range (0,12):
+    print(response_time("20626359",x)"""
+# All airline data are in the excel file in the folder
+   
 # Below are response times per day of the week in the order: mo,tu,we,thu,fr,sat,sun
 reptimeperday = [1573.0, 1175.0, 936.0, 1475.0, 1826.0, 1273.0, 1178.0]
 """for i in range(0,7):

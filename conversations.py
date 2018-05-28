@@ -73,9 +73,9 @@ class Conversation:
 
     def addTweets(user_id, user_name, start_date, end_date):
         query = """SELECT * FROM tweets WHERE (user_id == {} OR 
-            in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
-            datetime(created_at) >= datetime('{}') AND 
-            datetime(created_at) < datetime('{}');""".format(user_id, user_id, user_name, start_date, end_date)
+                   in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
+                   datetime(created_at) >= datetime('{}') AND 
+                   datetime(created_at) < datetime('{}');""".format(user_id, user_id, user_name, start_date, end_date)
         cursor = database.cursor()
         cursor.execute(query)
         result = cursor.fetchall()
@@ -157,7 +157,8 @@ def makeConversations():
 
 
 Conversation.replyIdList()
-Conversation.addTweets(user_id = '22536055', user_name= 'AmericanAir', start_date='2016-02-01 00:00:00', end_date='2017-06-01 00:00:00')
+Conversation.addTweets(user_id = '22536055', user_name= 'AmericanAir',
+                       start_date='2016-02-01 00:00:00', end_date='2017-06-01 00:00:00')
 makeConversations()
 times = [len(conv) for conv in conversationList]
 

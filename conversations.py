@@ -19,6 +19,7 @@ airlines_other_id = ["56377143", "106062176", "18332190", "124476322", "26223583
 airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "AirBerlin", "AirBerlin assist", "easyJet",
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 
+
 class Conversation:
     
     tweets = {}
@@ -30,10 +31,8 @@ class Conversation:
         if tweets != {}:
             Conversation.tweets = tweets
 
-
     def addTweetDict(tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         Conversation.tweets[tweet_id] = Tweet(tweet_id, user, text, time, lang, reply_user, reply_tweet)
-
     
     def addTweetConversation(self, tweet_id, end = False):
         tweet = Conversation.tweets[tweet_id]
@@ -51,8 +50,7 @@ class Conversation:
                 
         
         self.length = len(self)
-            
-            
+
     def getTweet(self, tweetid):
         
         if tweetid in Conversation.tweets.keys():
@@ -72,9 +70,8 @@ class Conversation:
             except:
                 database.commit()
                 return None
-    
-    
-    def addTweets(user_id, user_name, start_date = '2016-02-01 00:00:00', end_date = '2017-06-01 00:00:00'):
+
+    def addTweets(user_id, user_name, start_date, end_date):
         query = """SELECT * FROM tweets WHERE (user_id == {} OR 
             in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
             datetime(created_at) >= datetime('{}') AND 
@@ -92,7 +89,7 @@ class Conversation:
             reply_user = row[5]
             lang = row[6]
             Conversation.addTweetDict(tweet_id, user, text, created, lang,
-                              reply_user, reply_tweet)
+                                      reply_user, reply_tweet)
     
     
     def replyIdList():
@@ -122,8 +119,7 @@ class Conversation:
         
 
 class Tweet:
-    
-    
+
     def __init__(self, tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         self.tweet_id = tweet_id
         self.user = user
@@ -132,8 +128,7 @@ class Tweet:
         self.reply_user = reply_user
         self.reply_tweet = reply_tweet
         self.time = time
-    
-    
+
     def __str__(self):
         return 'ID:{} user:{} text:{} lang:{} reply_user:{} reply_tweet:{} created:{}'.format(self.tweet_id, 
                    self.user, self.text, self.lang, self.reply_user, self.reply_tweet, self.time)
@@ -149,9 +144,6 @@ def listToDict(lst):
             dicti[str(i)] = 1
     return dicti
 
-Conversation.replyIdList()
-print(len(Conversation.tweets))
-Conversation.addTweets(user_id = '22536055',user_name= 'AmericanAir')
 
 def makeConversations():
     for tweet_id in list(Conversation.tweets.keys()):
@@ -163,8 +155,10 @@ def makeConversations():
     times = [len(conv) for conv in conversationList]
     return listToDict(times)
 
-makeConversations()
 
+Conversation.replyIdList()
+Conversation.addTweets(user_id = '22536055', user_name= 'AmericanAir', start_date='2016-02-01 00:00:00', end_date='2017-06-01 00:00:00')
+makeConversations()
 times = [len(conv) for conv in conversationList]
 
 dicti = listToDict(times)

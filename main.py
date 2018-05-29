@@ -3,6 +3,7 @@ import access
 import sqlite3
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
 
@@ -222,6 +223,22 @@ def conversations(client_id, client_name, start_date, end_date, use_name):
                 lengths[length] = 1
     return lengths
 
+i = 0
+volume = {'airline':[], 'incoming':[], 'outgoing':[]}
+while i < len(airlines_id):
+    print(i)
+    name = airlines_names[i]
+    id_ = airlines_id[i]
+    volume['airline'].append(name)
+    volume['incoming'].append(get_incoming_volume(name, date_start = '2016-02-01 00:00:00', date_end = '2017-06-01 00:00:00')[0][0])
+    volume['outgoing'].append(get_outgoing_volume(id_, date_start = '2016-02-01 00:00:00', date_end = '2017-06-01 00:00:00')[0][0])
+    i = i + 1
+
+
+df = pd.DataFrame(volume)
+
+df.plot(x='airline', y='incoming', kind='bar')
+df.plot(x='airline', y='outgoing', kind='bar')
 
 # print(get_volume(american_air_id, '2016-05-30 00:00:00', '2016-12-11 00:00:00'))
 # print(volumes(american_air_id, american_air, '2016-05-30 00:00:00', '2017-05-01 00:00:00', 7))

@@ -32,12 +32,10 @@ class Conversation:
         self.user_name = user_name
         if tweets != {}:
             Conversation.tweets = tweets
- 
- 
+
     def addTweetDict(tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         Conversation.tweets[tweet_id] = Tweet(tweet_id, user, text, time, lang, reply_user, reply_tweet)
- 
-   
+
     def addTweetConversation(self, tweet_id, end = False):
         tweet = Conversation.tweets[tweet_id]
         if end:
@@ -53,8 +51,7 @@ class Conversation:
                 self.addTweetConversation(tweet_id)
                
         self.length = len(self)
-           
-           
+
     def getTweet(self, tweetid):
        
         if tweetid in Conversation.tweets.keys():
@@ -74,8 +71,7 @@ class Conversation:
             except:
                 database.commit()
                 return None
-   
-   
+
     def addTweets(self, start_date = '2016-02-01 00:00:00', end_date = '2017-06-01 00:00:00'):
         query = """SELECT * FROM tweets WHERE (user_id == {} OR
             in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
@@ -95,8 +91,7 @@ class Conversation:
             lang = row[6]
             Conversation.addTweetDict(tweet_id, user, text, created, lang,
                               reply_user, reply_tweet)
-   
-   
+
     def replyIdList():
         query = """SELECT in_reply_to_tweet_id FROM tweets
         WHERE in_reply_to_tweet_id NOT NULL;"""
@@ -105,11 +100,7 @@ class Conversation:
         result = cursor.fetchall()
         database.commit()
         Conversation.reply_ids = set([i[0] for i in result if i != 'None'])
-        
-    
-    
-   
-   
+
     def __len__(self):
         if True:
             return len(self.tweets_lst)
@@ -120,8 +111,7 @@ class Conversation:
             return len(self.tweets_lst) + 1
         else:
             return len(self.tweets_lst)
-   
-   
+
     def __return__(self):
         return [Conversation.tweets[tweet] for tweet in self.tweets_lst]
        
@@ -149,10 +139,12 @@ def listToDict(lst):
         else:
             dicti[str(i)] = 1
     return dicti
- 
+
+
 Conversation.replyIdList()
 Conversation.addTweets()
- 
+
+
 def makeConversations():
     for tweet_id in list(Conversation.tweets.keys()):
         if not tweet_id in Conversation.reply_ids:

@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1525166867841.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2882583284",
+    "id" : "EBDB7547",
+    "lastKnownWriteTime" : 1526489042,
+    "last_content_update" : 1526489042621,
+    "path" : "~/Desktop/R-Studio/Stats/MONTYHALL.R",
+    "project_path" : "MONTYHALL.R",
+    "properties" : {
+        "cursorPosition" : "0,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

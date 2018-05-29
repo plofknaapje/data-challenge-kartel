@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "Monty <- function(n, switch){\n  wins <- 0\n  for (i in 1:n) {\n    doors <- c(1:3)\n    prize_door <- sample(doors, 1)\n    choosen_door <- sample(doors, 1)\n    if (prize_door == choosen_door) {\n      if (switch == FALSE) {\n        wins = wins + 1\n      }\n    } else {\n      if (switch == TRUE) {\n        wins = wins + 1\n      }\n    }\n  }\n  return(wins/n)\n}\n\n",
+    "created" : 1525166867841.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4009455126",
+    "id" : "EBDB7547",
+    "lastKnownWriteTime" : 1525168018,
+    "last_content_update" : 1525168018304,
+    "path" : "~/Desktop/R-Studio/Stats/MONTYHALL.R",
+    "project_path" : "MONTYHALL.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

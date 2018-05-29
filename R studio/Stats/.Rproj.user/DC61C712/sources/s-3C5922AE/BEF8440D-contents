@@ -1,0 +1,148 @@
+---
+title: "Exercise 2"
+output: html_notebook
+---
+EMAIL: n.c.deschipper
+
+Question 1
+part 1
+1.1
+population standard error of the mean difference, you can estimate this with SE of student t and SE of welch
+
+1.2
+$\sqrt{\frac{208}{208}}$
+
+
+
+```{r}
+rnorm()
+```
+
+1.3
+Input:
+ * S: integer deining the number of independent data sets to generate
+ * n: the sample size of the data sets
+ * $\mu $, and $\sigma^2$ vlaues fo the population parameters ofthe data generating        distribution
+ Output: S estimates o the statistics of interest, namely bias, variance, MSE and RE
+ 
+ 1. initialize out students_bias, students_var, students_mse, welch_bias, welch_var,      welch_mse and relative_efficiency all as vector of length S
+2. For s in 1:S:
+  A. Generate data with sample size n1 from N($\mu_1 , \sigma^2_1$) and sample size n2 from N($\mu_2 , \sigma^2_12)
+  B. Obtain sample variance, bias and mse for both
+  
+  
+1. intialize bias$_{student}$, variance$_{student}$, mse$_{student}$ , bias$_{welch}$, $variance_{welch}$ , mse$_{welch}$  all as vector of lentgh S and RE for relative efficency
+  
+  
+  
+```{r}
+set.seed(200)
+MC_SE <- function(n1, var_2){
+  s <- 10000
+  mu_1 <- 0
+  var_1 <- 1
+  n2 <- 200
+  mu_2 <- 1
+  SE_s <- rep(NA, s)
+  SE_w <- rep(NA, s)
+  for (i in 1:s){
+    data1 <- rnorm(n1, mu_1, sqrt(var_1))
+    data2 <- rnorm(n2, mu_2, sqrt(var_2))
+    p_sd <- sqrt(((n1-1)*var(data1)+(n2-1)*var(data2))/(n1+n2-2))
+    SE_s[i] <- p_sd*(sqrt((1/n1)+(1/n2)))
+    SE_w[i] <- sqrt((var(data1)/n1)+(var(data2)/n2))
+  }
+  op_var_s <- var(SE_s)
+  op_var_w <- var(SE_w)
+  bias_s <- rep(NA, s)
+  bias_w <- rep(NA, s)
+  for (i in 1:s){
+    bias_s[i] <- sqrt((var_1/n1)+(var_2/n2)) - SE_s[i]
+    bias_w[i] <- sqrt((var_1/n1)+(var_2/n2)) - SE_w[i]
+  }
+  op_bias_s <- mean(bias_s)
+  op_bias_w <- mean(bias_w)
+  op_MSE_s <- (op_bias_s)^2 + op_var_s
+  op_MSE_w <- (op_bias_w)^2 + op_var_w
+  RE <- op_MSE_w/op_MSE_s
+  return(c(op_var_s, op_var_w, op_bias_s, op_bias_w, op_MSE_s, op_MSE_w, RE))
+}
+mat = rbind(
+  MC_SE(n1=10, var_2=1), MC_SE(n1=100, var_2=1), MC_SE(n1=200, var_2=1),
+  MC_SE(n1=10, var_2=2), MC_SE(n1=100, var_2=2), MC_SE(n1=200, var_2=2),
+  MC_SE(n1=10, var_2=10), MC_SE(n1=100, var_2=10), MC_SE(n1=200, var_2=10))
+
+dimnames(mat) <- list(c("n1=10 var_2=1", "n1=100 var_2=1", "n1=200 var_2=1", 
+                        "n1=10 var2=2","n1=100 var_2=2","n1=200 var_2=2",
+                        "n1=10 var2=10","n1=100 var_2=10","n1=200 var_2=10"), 
+                      c("Var_S", "Var_W","Bias_S", "Bias_W", "MSE_S", "MSE_W", "RE"))
+print(mat)
+```
+
+  
+  
+  
+  
+  
+  
+  
+```{r}
+student <- c(TRUE, FALSE)
+n1 <- c(10, 100, 200)
+n2 <- 200
+var2 <- c(1, 2 , 10)
+var1 <- 1
+mean1 <- 0
+mean2 <- 1
+S <- 10000
+conditions <- expand.grid(n1, var2)
+
+
+MonteCarlo_SE <- function(n1, var2) {
+  data_1 <- rnorm(n1, mean1, sqrt(var1))
+  data_2 <- rnorm(n2, mean2, sqrt(var2))
+  SE_student <- rep(NA, S)
+  SE_welch <- rep(NA, S)
+  for (i in 1:S) {
+    data_1 <- rnorm(n1, mean1, sqrt(var1))
+    data_2 <- rnorm(n2, mean2, sqrt(var2))
+    pooled_sd <- sqrt(((n1-1)*var(data_1)+(n2-1)*var(data_2))/(n1+n2-2))
+    SE_student[i] <- pooled_sd*sqrt(((1/n1)+(1/n2)))
+    SE_welch[i] <- sqrt((var(data_1)/n1)+(var(data_2)/n2))
+  }
+  
+  bias_Student <- sqrt((var1/n1)+(var2/n2)) - mean(SE_student)
+  bias_Welch <- sqrt((var1/n1)+(var2/n2)) - mean(SE_welch)
+  
+  Out_variance_student <- var(SE_student)
+  Out_variance_welch <- var(SE_welch)
+  Out_bias_student <- bias_Student
+  Out_bias_welch <- bias_Welch
+  Out_MSE_student <- (bias_Student)^2 + Out_variance_student
+  Out_MSE_welch <- (bias_Welch)^2 + Out_variance_welch
+  RE <- (sum(SE_welch)/sum(SE_student)) #niet summer
+  return(c(Out_variance_student, Out_variance_welch, Out_bias_student, Out_bias_welch, Out_MSE_student, Out_MSE_welch, RE))
+}
+
+results <- matrix(NA, 7, 9)
+for (i in 1:nrow(conditions)) {
+  results[, i] <- MonteCarlo_SE(n1 = conditions[i, 1], var2 = conditions[i,2])
+}
+t(round(results, digits = 3))
+
+
+```
+1.2
+Use t-test r-function to obtain p value
+
+
+
+```{r}
+
+
+
+```
+
+
+
+

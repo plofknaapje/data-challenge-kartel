@@ -5,8 +5,8 @@ Created on Tue May 22 15:47:09 2018
 @author: 20166843
 """
 import access
-from datetime import datetime
-import seaborn as sns
+from datetime import datetime, timedelta
+import seaborn as sns; sns.set()
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -24,16 +24,26 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 
 # Default for AA
-user_id = airlines_id[3]
-user_name = airlines_names[3]
+user_id = airlines_id[2]
+user_name = airlines_names[2]
 
 
 class Conversation:
+    
+    '''
+    Class which contains a class dictionary with all relevant tweets as Tweet
+    objects.
+    Also contains a list with all tweets to which was replied.
+    '''
    
     tweets = {}
     reply_ids = []
    
     def __init__(self, tweets = {}):
+        '''
+        Initializes basic variables of the object.
+        :param tweets: optional dictionary to skip the building of the dict.
+        '''
         self.length = 0
         self.tweets_lst = []
         if tweets != {}:
@@ -195,23 +205,37 @@ if __name__ == "__main__":
     
     dicti = makeConversations(user_id, user_name)
     
-    datetimeLst = {'day':[], 'hour':[], 'length':[]}
+    datetimeLst = {'hour':[], 'length':[], 'date':[]}
     for conv in conversationList:
-        datetimeLst['day'].append(conv.time.weekday())
-        datetimeLst['hour'].append(conv.time.hour)
+        dt = conv.time
+        if user_name == 'AmericanAir':
+            dt = dt - timedelta(hours=6)
+        datetimeLst['hour'].append(dt.hour)
+        datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
         datetimeLst['length'].append(conv.length)
         
-    
+    plt.figure(figsize=[10,6])
     df = pd.DataFrame(datetimeLst)
-    amount_results = df.groupby(['day','hour']).size().reset_index().rename(columns={0:'count'})
+    amount_results = df.groupby(['date','hour']).size().reset_index().rename(columns={0:'count'})
+    amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
+    amount_results['day'] = amount_results['date'].dt.weekday
+    amount_results.drop(['date'], axis=1)
+    amount_results = amount_results.groupby(['day', 'hour']).mean().reset_index()
     amount_results = amount_results.pivot('hour', 'day', 'count')
-    average_results = df.groupby(['day','hour']).mean().reset_index()
-    average_results = average_results.pivot( 'hour', 'day', 'length')
     
-    sns.heatmap(amount_results, cmap='Blues')
-    plt.plot()
-    
-    sns.heatmap(average_results)
+    ax = sns.heatmap(amount_results, cmap='Blues')
+    ax.invert_yaxis()
+    ax
+    plt.xlabel("day of the week")
+    plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+    plt.ylabel("hour of the day")
+    plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
+            13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
+           ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
+            "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
+            "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
+            "21:00", "22:00", "23:00"], rotation=0)
+    plt.title('Average amount of conversation with {}'.format(user_name))
     plt.plot()
     # times = [len(conv) for conv in conversationList]
     

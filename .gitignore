@@ -207,4 +207,9 @@ R studio/Stats/Untitled.nb.html
 R studio/Stats/Untitled.Rmd
 .DS_Store
 mydb.sqlite3
+<<<<<<< HEAD
 ~$Response times.xlsx
+=======
+.DS_Store
+response_time.db
+>>>>>>> 9f88d0e7e837d24ca769ed49330753c7a1310e60

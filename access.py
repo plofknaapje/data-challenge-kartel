@@ -10,13 +10,15 @@ from datetime import datetime
 files = "airlines_complete"
 test_file = "airlines_complete/airlines-1464602228450.json"
 
-db = sqlite3.connect('data/mydb.sqlite3')
+db = sqlite3.connect('data/myd.sqlite3')
 cursor = db.cursor()
 
 try:
     cursor.execute('''
     CREATE TABLE tweets(tweet_id TEXT PRIMARY KEY, created_at TEXT,
-                       user_id TEXT, text TEXT, in_reply_to_tweet_id TEXT, in_reply_to_user_id TEXT, lang TEXT)
+                       user_id TEXT, text TEXT, in_reply_to_tweet_id TEXT, 
+                       in_reply_to_user_id TEXT, lang TEXT, longitude FLOAT(24),
+                       latitude FLOAT(24))
     ''')
     db.commit()
 except sqlite3.OperationalError:
@@ -52,7 +54,7 @@ def open_json_twitter(file_path):
     f.close()
     return tweets
 
-def db_upload(file_name, db, add_attributes = []):
+def db_upload(file_name, db):
     """
     Takes a string of the location of a json file.
     Uploads all the tweets to the mongoDB collection and ignore all other rows with the following attributes:
@@ -64,24 +66,29 @@ def db_upload(file_name, db, add_attributes = []):
     :param add_attributes: List with additional attributes
     :return: Success if succesful
     """
-    attributes = ['text', 'in_reply_to_status_id_str', 'in_reply_to_user_id_str', 'lang'] + add_attributes
     for tweet in open_json_twitter(file_name):
         if 'id_str' not in tweet.keys():
             continue
         created_at = datetime.strptime(tweet['created_at'], '%a %b %d %H:%M:%S %z %Y')
-        id = tweet['id_str']
         try:
             test = tweet['lang']
         except KeyError:
             tweet['lang'] = 'und'
+            
+        long = None
+        lati = None
+        if tweet['coordinates'] != None:
+            long = tweet['coordinates']['coordinates'][0]
+            lati = tweet['coordinates']['coordinates'][1]
 
         tweet_msg = [tweet['id_str'], created_at, tweet['user']['id_str'], tweet['text'],
-                tweet['in_reply_to_status_id_str'], tweet['in_reply_to_user_id_str'], tweet['lang']]
+                tweet['in_reply_to_status_id_str'], tweet['in_reply_to_user_id_str'], 
+                tweet['lang'], long, lati]
 
         local_cursor = db.cursor()
         try:
             local_cursor.execute('''INSERT INTO tweets(tweet_id, created_at, user_id, text, in_reply_to_tweet_id, 
-                                    in_reply_to_user_id, lang) VALUES(?,?,?,?,?,?,?)''',tweet_msg)
+                                    in_reply_to_user_id, lang, longitude, latitude) VALUES(?,?,?,?,?,?,?,?,?)''',tweet_msg)
             db.commit()
         except sqlite3.IntegrityError:
             continue
@@ -100,3 +107,11 @@ def build_database(db, directory = files):
         print(350 - i)
         i = i + 1
     return 'Success'
+
+    conversationList.append(conversation)
+    times = [len(conv) for conv in conversationList]
+    return listToDict(times)
+
+
+if __name__ == "__main__":
+    build_database(db)

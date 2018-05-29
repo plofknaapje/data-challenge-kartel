@@ -164,3 +164,8 @@ times = [len(conv) for conv in conversationList]
 
 dicti = listToDict(times)
 print(dicti)
+
+"""
+@Robin vragen om met intervallen te kijken, en kijken naar begin van converstaions blablabla @ZENO
+Per uur van per dag
+"""

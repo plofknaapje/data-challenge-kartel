@@ -5,6 +5,7 @@ Created on Tue May 22 15:47:09 2018
 @author: 20166843
 """
 import access
+from datetime import datetime
 
 
 database = access.db
@@ -111,6 +112,7 @@ class Conversation:
         
     
     def containsUser(self):
+        self.startingDate()
         contains = False
         for tweet in self.tweets_lst:
             tweet = Conversation.tweets[tweet]
@@ -118,6 +120,14 @@ class Conversation:
                 contains = True
         return contains
    
+    
+    def startingDate(self):
+        self.time = datetime.strptime('2017-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
+        for tweet in self.tweets_lst:
+            tweet = Conversation.tweets[tweet]
+            if tweet.time < self.time:
+                self.time = tweet.time
+            
 
     def __len__(self):
         if True:
@@ -143,7 +153,7 @@ class Tweet:
         self.lang = lang
         self.reply_user = reply_user
         self.reply_tweet = reply_tweet
-        self.time = time
+        self.time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S+00:00')
    
     def __str__(self):
         return 'ID:{} user:{} text:{} lang:{} reply_user:{} reply_tweet:{} created:{}'.format(self.tweet_id,

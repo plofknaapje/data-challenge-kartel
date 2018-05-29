@@ -67,7 +67,7 @@ def response_time(airline, timevar):
     # tweet_link = tweet_link[tweet_link['airline_time'].dt.weekday == timevar] # for calculating per day of the week
     # tweet_link = tweet_link[tweet_link['airline_time'].dt.hour == timevar] # for calculating per hour
     tweet_link['response_time'] = tweet_link['airline_time'] - tweet_link['customer_time']
-    tweet_link['response_time'] = tweet_link['response_time'] / np.timedelta64(1, 's')
+    tweet_link['response_time'] = tweet_link['response_time'] / np.timedelta64(60, 's')
     tweet_link['weekday'] = tweet_link['customer_time'].dt.weekday
     tweet_link['hour'] = tweet_link['customer_time'].dt.hour
     conversation_day_hour = tweet_link.groupby(['weekday', 'hour']).median().reset_index()
@@ -75,10 +75,11 @@ def response_time(airline, timevar):
     return conversation_day_hour
     #return tweet_link['response_time'].median()
 
-
+print(response_time('22536055', 1))
 #print(response_time('22536055', 1))
 plt.figure(figsize=[8,4])
-sns.heatmap(response_time('22536055', 1).pivot('hour', 'weekday', 'response_time'), cmap="Blues")
+sns.heatmap(response_time('22536055', 1).pivot('hour', 'weekday', 'response_time'), cmap="Blues",
+            cbar_kws={'label': 'Response time in minutes'})
 plt.xlabel("day of the week")
 plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
 plt.ylabel("hour of the day")

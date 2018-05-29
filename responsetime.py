@@ -71,9 +71,9 @@ def response_time(airline, timevar):
     tweet_link['weekday'] = tweet_link['customer_time'].dt.weekday
     tweet_link['hour'] = tweet_link['customer_time'].dt.hour
     conversation_day_hour = tweet_link.groupby(['weekday', 'hour']).median().reset_index()
-    #conversation_day_hour['response_time'] = tweet_link.groupby(['weekday', 'hour']).median()
+    # conversation_day_hour['response_time'] = tweet_link.groupby(['weekday', 'hour']).median()
     return conversation_day_hour
-    #return tweet_link['response_time'].median()
+    # return tweet_link['response_time'].median()
 
 print(response_time('22536055', 1))
 #print(response_time('22536055', 1))

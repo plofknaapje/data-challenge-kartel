@@ -108,4 +108,10 @@ def build_database(db, directory = files):
         i = i + 1
     return 'Success'
 
-build_database(db)
+    conversationList.append(conversation)
+    times = [len(conv) for conv in conversationList]
+    return listToDict(times)
+
+
+if __name__ == "__main__":
+    build_database(db)

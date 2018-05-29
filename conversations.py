@@ -24,8 +24,8 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 
 # Default for AA
-user_id = airlines_id[3]
-user_name = airlines_names[3]
+user_id = airlines_id[2]
+user_name = airlines_names[2]
 
 
 class Conversation:
@@ -235,7 +235,7 @@ if __name__ == "__main__":
             "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
             "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
             "21:00", "22:00", "23:00"], rotation=0)
-    plt.title('Average amount of conversation with AmericanAir')
+    plt.title('Average amount of conversation with {}'.format(user_name))
     plt.plot()
     # times = [len(conv) for conv in conversationList]
     

@@ -6,6 +6,9 @@ Created on Tue May 22 15:47:09 2018
 """
 import access
 from datetime import datetime
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 database = access.db
@@ -19,6 +22,10 @@ airlines_other_id = ["56377143", "106062176", "18332190", "124476322", "26223583
                      "1542862735", "253340062", "218730857", "45621423", "20626359"]
 airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "AirBerlin", "AirBerlin assist", "easyJet",
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
+
+# Default for AA
+user_id = airlines_id[3]
+user_name = airlines_names[3]
 
 
 class Conversation:
@@ -183,13 +190,33 @@ def makeConversations(user_id, user_name):
     return listToDict(times)
 
 
-makeConversations(user_id = '22536055', user_name='AmericanAir')
-times = [len(conv) for conv in conversationList]
-
-dicti = listToDict(times)
-print(dicti)
-
-"""
-@Robin vragen om met intervallen te kijken, en kijken naar begin van converstaions blablabla @ZENO
-Per uur van per dag
-"""
+if __name__ == "__main__":
+    # execute only if run as a script
+    
+    dicti = makeConversations(user_id, user_name)
+    
+    datetimeLst = {'day':[], 'hour':[], 'length':[]}
+    for conv in conversationList:
+        datetimeLst['day'].append(conv.time.weekday())
+        datetimeLst['hour'].append(conv.time.hour)
+        datetimeLst['length'].append(conv.length)
+        
+    
+    df = pd.DataFrame(datetimeLst)
+    amount_results = df.groupby(['day','hour']).size().reset_index().rename(columns={0:'count'})
+    amount_results = amount_results.pivot('hour', 'day', 'count')
+    average_results = df.groupby(['day','hour']).mean().reset_index()
+    average_results = average_results.pivot( 'hour', 'day', 'length')
+    
+    sns.heatmap(amount_results, cmap='Blues')
+    plt.plot()
+    
+    sns.heatmap(average_results)
+    plt.plot()
+    # times = [len(conv) for conv in conversationList]
+    
+    
+    '''
+    dicti = listToDict(times)
+    print(dicti)
+    '''

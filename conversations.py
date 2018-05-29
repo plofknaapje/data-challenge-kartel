@@ -214,7 +214,6 @@ if __name__ == "__main__":
         datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
         datetimeLst['length'].append(conv.length)
         
-    plt.figure(figsize=[10,6])
     df = pd.DataFrame(datetimeLst)
     amount_results = df.groupby(['date','hour']).size().reset_index().rename(columns={0:'count'})
     amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')

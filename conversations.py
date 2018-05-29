@@ -37,10 +37,10 @@ class Conversation:
         Conversation.user_name = user_name
     
  
+
     def addTweetDict(tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         Conversation.tweets[tweet_id] = Tweet(tweet_id, user, text, time, lang, reply_user, reply_tweet)
- 
-   
+
     def addTweetConversation(self, tweet_id, end = False):
         tweet = Conversation.tweets[tweet_id]
         if end:
@@ -56,8 +56,7 @@ class Conversation:
                 self.addTweetConversation(tweet_id)
                
         self.length = len(self)
-           
-           
+
     def getTweet(self, tweetid):
        
         if tweetid in Conversation.tweets.keys():
@@ -80,6 +79,7 @@ class Conversation:
    
    
     def addTweets(start_date = '2016-02-01 00:00:00', end_date = '2017-06-01 00:00:00'):
+
         query = """SELECT * FROM tweets WHERE (user_id == {} OR
             in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
             datetime(created_at) >= datetime('{}') AND
@@ -99,8 +99,7 @@ class Conversation:
             lang = row[6]
             Conversation.addTweetDict(tweet_id, user, text, created, lang,
                               reply_user, reply_tweet)
-   
-   
+
     def replyIdList():
         query = """SELECT in_reply_to_tweet_id FROM tweets
         WHERE in_reply_to_tweet_id NOT NULL;"""
@@ -119,6 +118,7 @@ class Conversation:
                 contains = True
         return contains
    
+
     def __len__(self):
         if True:
             return len(self.tweets_lst)
@@ -129,8 +129,7 @@ class Conversation:
             return len(self.tweets_lst) + 1
         else:
             return len(self.tweets_lst)
-   
-   
+
     def __return__(self):
         return [Conversation.tweets[tweet] for tweet in self.tweets_lst]
        
@@ -163,6 +162,7 @@ def makeConversations(user_id, user_name):
     Conversation.setup(user_id, user_name)
     Conversation.replyIdList()
     Conversation.addTweets()
+
     for tweet_id in list(Conversation.tweets.keys()):
         if not tweet_id in Conversation.reply_ids:
             conversation = Conversation()

@@ -48,8 +48,7 @@ class Conversation:
         elif tweet_id != None:
             if self.getTweet(tweet_id):
                 self.addTweetConversation(tweet_id)
-                
-        
+
         self.length = len(self)
 
     def getTweet(self, tweetid):
@@ -91,8 +90,7 @@ class Conversation:
             lang = row[6]
             Conversation.addTweetDict(tweet_id, user, text, created, lang,
                                       reply_user, reply_tweet)
-    
-    
+
     def replyIdList():
         query = """SELECT in_reply_to_tweet_id FROM tweets 
         WHERE in_reply_to_tweet_id NOT NULL;"""
@@ -101,8 +99,7 @@ class Conversation:
         result = cursor.fetchall()
         database.commit()
         Conversation.reply_ids = set([i[0] for i in result if i != 'None'])
-    
-    
+
     def __len__(self):
         if True:
             return len(self.tweets_lst)
@@ -113,8 +110,7 @@ class Conversation:
             return len(self.tweets_lst) + 1
         else:
             return len(self.tweets_lst)
-    
-    
+
     def __return__(self):
         return [Conversation.tweets[tweet] for tweet in self.tweets_lst]
         
@@ -133,7 +129,6 @@ class Tweet:
     def __str__(self):
         return 'ID:{} user:{} text:{} lang:{} reply_user:{} reply_tweet:{} created:{}'.format(self.tweet_id, 
                    self.user, self.text, self.lang, self.reply_user, self.reply_tweet, self.time)
-
 
 
 def listToDict(lst):

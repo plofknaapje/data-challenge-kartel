@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-from textblob import TextBlob
-import sqlite3
-import re
-import pandas as pd
+"""
+Created on Tue May 22 15:47:09 2018
 
-database = sqlite3.connect('mydb.sqlite3')
+@author: 20166843
+"""
+import access
 
+
+database = access.db
 conversationList = []
- 
-airlines_id = [ "56377143", "106062176", "18332190", "22536055", "124476322", "26223583", "2182373406", "38676903",
+
+airlines_id = ["56377143", "106062176", "18332190", "22536055", "124476322", "26223583", "2182373406", "38676903",
                "1542862735", "253340062", "218730857", "45621423", "20626359"]
 airlines_names = ["KLM", "AirFrance", "British_Airways", "AmericanAir", "Lufthansa", "AirBerlin", "AirBerlin assist",
                   "easyJet", "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
@@ -16,15 +18,18 @@ airlines_other_id = ["56377143", "106062176", "18332190", "124476322", "26223583
                      "1542862735", "253340062", "218730857", "45621423", "20626359"]
 airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "AirBerlin", "AirBerlin assist", "easyJet",
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
- 
+
+
 class Conversation:
    
     tweets = {}
     reply_ids = []
    
-    def __init__(self, tweets = {}):
+    def __init__(self,  user_id, user_name, tweets = {}):
         self.length = 0
         self.tweets_lst = []
+        self.user_id = user_id
+        self.user_name = user_name
         if tweets != {}:
             Conversation.tweets = tweets
  
@@ -71,11 +76,11 @@ class Conversation:
                 return None
    
    
-    def addTweets(user_id, user_name, start_date = '2016-02-01 00:00:00', end_date = '2017-06-01 00:00:00'):
+    def addTweets(self, start_date = '2016-02-01 00:00:00', end_date = '2017-06-01 00:00:00'):
         query = """SELECT * FROM tweets WHERE (user_id == {} OR
             in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
             datetime(created_at) >= datetime('{}') AND
-            datetime(created_at) < datetime('{}');""".format(user_id, user_id, user_name, start_date, end_date)
+            datetime(created_at) < datetime('{}');""".format(self.user_id, self.user_id, self.user_name, start_date, end_date)
         cursor = database.cursor()
         cursor.execute(query)
         result = cursor.fetchall()
@@ -100,6 +105,9 @@ class Conversation:
         result = cursor.fetchall()
         database.commit()
         Conversation.reply_ids = set([i[0] for i in result if i != 'None'])
+        
+    
+    
    
    
     def __len__(self):
@@ -143,56 +151,29 @@ def listToDict(lst):
     return dicti
  
 Conversation.replyIdList()
-Conversation.addTweets(user_id = '22536055',user_name= 'AmericanAir')
+Conversation.addTweets()
  
 def makeConversations():
     for tweet_id in list(Conversation.tweets.keys()):
         if not tweet_id in Conversation.reply_ids:
-            conversation = Conversation()
+            conversation = Conversation(user_id = '22536055',user_name= 'AmericanAir')
             conversation.addTweetConversation(tweet_id)
             if conversation.length > 1:
                 conversationList.append(conversation)
     times = [len(conv) for conv in conversationList]
     return listToDict(times)
-  
+
+
+Conversation.replyIdList()
+Conversation.addTweets(user_id = '22536055', user_name= 'AmericanAir',
+                       start_date='2016-02-01 00:00:00', end_date='2017-06-01 00:00:00')
+makeConversations()
 times = [len(conv) for conv in conversationList]
- 
+
 dicti = listToDict(times)
- 
-def processTweet(tweet):
-    # process the tweets
- 
-    #Convert to lower case
-    tweet = tweet.lower()
-    #Convert www.* or https?://* to URL
-    tweet = re.sub('((www.[^\s]+)|(https?://[^\s]+))','URL',tweet)
-    #Convert @username to AT_USER
-    tweet = re.sub('@[^\s]+','AT_USER',tweet)
-    #Remove additional white spaces
-    tweet = re.sub('[\s]+', ' ', tweet)
-    #Replace #word with word
-    tweet = re.sub(r'#([^\s]+)', r'\1', tweet)
-    #trim
-    return tweet
+print(dicti)
 
-tweet_ids_lst = []
-tweet_text_lst = []
-tweet_sentiment_score = []
- 
-for key in Conversation.tweets.keys():
-    tweet_ids_lst.append(key)
-    
-    proctweet = processTweet(Conversation.tweets[key].text)
-    tweet_text_lst.append(proctweet)
-    
-    blob = TextBlob(proctweet)
-    tweet_sentiment_score.append(blob.sentiment.polarity)
-    
-dataframe = pd.DataFrame(
-        {'tweet_id': tweet_ids_lst,
-         'text': tweet_text_lst,
-         'sentimtent': tweet_sentiment_score
-        })
-    
-print(dataframe.head())
-
+"""
+@Robin vragen om met intervallen te kijken, en kijken naar begin van converstaions blablabla @ZENO
+Per uur van per dag
+"""

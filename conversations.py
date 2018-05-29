@@ -24,8 +24,8 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 
 # Default for AA
-user_id = airlines_id[2]
-user_name = airlines_names[2]
+user_id = airlines_id[3]
+user_name = airlines_names[3]
 
 
 class Conversation:

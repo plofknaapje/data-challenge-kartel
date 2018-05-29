@@ -25,14 +25,17 @@ class Conversation:
     tweets = {}
     reply_ids = []
    
-    def __init__(self,  user_id, user_name, tweets = {}):
+    def __init__(self, tweets = {}):
         self.length = 0
         self.tweets_lst = []
-        self.user_id = user_id
-        self.user_name = user_name
         if tweets != {}:
             Conversation.tweets = tweets
  
+    
+    def setup(user_id, user_name):
+        Conversation.user_id = user_id
+        Conversation.user_name = user_name
+    
  
     def addTweetDict(tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         Conversation.tweets[tweet_id] = Tweet(tweet_id, user, text, time, lang, reply_user, reply_tweet)
@@ -76,11 +79,12 @@ class Conversation:
                 return None
    
    
-    def addTweets(self, start_date = '2016-02-01 00:00:00', end_date = '2017-06-01 00:00:00'):
+    def addTweets(start_date = '2016-02-01 00:00:00', end_date = '2017-06-01 00:00:00'):
         query = """SELECT * FROM tweets WHERE (user_id == {} OR
             in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
             datetime(created_at) >= datetime('{}') AND
-            datetime(created_at) < datetime('{}');""".format(self.user_id, self.user_id, self.user_name, start_date, end_date)
+            datetime(created_at) < datetime('{}');""".format(Conversation.user_id, 
+            Conversation.user_id, Conversation.user_name, start_date, end_date)
         cursor = database.cursor()
         cursor.execute(query)
         result = cursor.fetchall()
@@ -107,8 +111,13 @@ class Conversation:
         Conversation.reply_ids = set([i[0] for i in result if i != 'None'])
         
     
-    
-   
+    def containsUser(self):
+        contains = False
+        for tweet in self.tweets_lst:
+            tweet = Conversation.tweets[tweet]
+            if tweet.user == Conversation.user_id:
+                contains = True
+        return contains
    
     def __len__(self):
         if True:
@@ -150,24 +159,21 @@ def listToDict(lst):
             dicti[str(i)] = 1
     return dicti
  
-Conversation.replyIdList()
-Conversation.addTweets()
- 
-def makeConversations():
+def makeConversations(user_id, user_name):
+    Conversation.setup(user_id, user_name)
+    Conversation.replyIdList()
+    Conversation.addTweets()
     for tweet_id in list(Conversation.tweets.keys()):
         if not tweet_id in Conversation.reply_ids:
-            conversation = Conversation(user_id = '22536055',user_name= 'AmericanAir')
+            conversation = Conversation()
             conversation.addTweetConversation(tweet_id)
-            if conversation.length > 1:
+            if conversation.length > 1 and conversation.containsUser():
                 conversationList.append(conversation)
     times = [len(conv) for conv in conversationList]
     return listToDict(times)
 
 
-Conversation.replyIdList()
-Conversation.addTweets(user_id = '22536055', user_name= 'AmericanAir',
-                       start_date='2016-02-01 00:00:00', end_date='2017-06-01 00:00:00')
-makeConversations()
+makeConversations(user_id = '22536055', user_name='AmericanAir')
 times = [len(conv) for conv in conversationList]
 
 dicti = listToDict(times)

@@ -237,8 +237,8 @@ while i < len(airlines_id):
 
 df = pd.DataFrame(volume)
 
-df.plot(x='airline', y='incoming', kind='bar')
-df.plot(x='airline', y='outgoing', kind='bar')
+df.plot(x='airline', y='incoming', kind='vbar')
+df.plot(x='airline', y='outgoing', kind='vbar')
 
 # print(get_volume(american_air_id, '2016-05-30 00:00:00', '2016-12-11 00:00:00'))
 # print(volumes(american_air_id, american_air, '2016-05-30 00:00:00', '2017-05-01 00:00:00', 7))

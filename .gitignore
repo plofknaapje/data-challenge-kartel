@@ -208,3 +208,4 @@ R studio/Stats/Untitled.Rmd
 .DS_Store
 mydb.sqlite3
 .DS_Store
+response_time.db

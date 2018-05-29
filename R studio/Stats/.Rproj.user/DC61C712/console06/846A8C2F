@@ -1,0 +1,42 @@
+]0;~/Desktop/R-Studio/Stats[?1034hww040526:Stats Twan$ [Kww040526:Stats Twan$ devtools::install_github("rstudio/rmarkdown")
+bash: syntax error near unexpected token `"rstudio/rmarkdown"'
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ devtools::install_github("rstudio/rmarkdown")% ams
+bash: syntax error near unexpected token `"rstudio/rmarkdown"'
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  \usepackage{amssymb,amsmath}
+bash: usepackageamssymb: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ +% utf8 encoding
+bash: +%: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ +\usepackage[utf8]{inputenc}
+bash: +usepackage[utf8]{inputenc}: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ +
+bash: +: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  % graphix
+bash: fg: %: no such job
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  \usepackage{graphicx}
+bash: usepackage{graphicx}: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  \setkeys{Gin}{width=\linewidth,totalheight=\textheight,ke epaspectratio}
+bash: setkeys{Gin}width=linewidth: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ 
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ % ams
+bash: fg: %: no such job
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  \usepackage{amssymb,amsmath}
+bash: usepackageamssymb: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ +% utf8 encoding
+bash: +%: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ +\usepackage[utf8]{inputenc}
+bash: +usepackage[utf8]{inputenc}: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ +
+bash: +: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  % graphix
+bash: fg: %: no such job
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  \usepackage{graphicx}
+bash: usepackage{graphicx}: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$  \setkeys{Gin}{width=\linewidth,totalheight=\textheight,ke epaspectratio}
+bash: setkeys{Gin}width=linewidth: command not found
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ devtools::install_github("rstudio/rmarkdown")
+bash: syntax error near unexpected token `"rstudio/rmarkdown"'
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ devtools::install_github("rstudio/rmarkdown")
+bash: syntax error near unexpected token `"rstudio/rmarkdown"'
+]0;~/Desktop/R-Studio/Statsww040526:Stats Twan$ 

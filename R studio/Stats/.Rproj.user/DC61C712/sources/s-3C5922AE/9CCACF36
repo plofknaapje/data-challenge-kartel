@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1526375068836.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "9CCACF36",
+    "lastKnownWriteTime" : 1526985201,
+    "last_content_update" : 1526985201313,
+    "path" : "~/Desktop/R-Studio/Stats/Untitled.Rmd",
+    "project_path" : "Untitled.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "123,85",
+        "scrollLine" : "114",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

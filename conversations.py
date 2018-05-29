@@ -25,7 +25,6 @@ class Conversation:
    
     tweets = {}
     reply_ids = []
-
    
     def __init__(self, tweets = {}):
         self.length = 0
@@ -36,12 +35,12 @@ class Conversation:
     
     def setup(user_id, user_name):
         Conversation.user_id = user_id
-        Conversation.user_name = user_name    
+        Conversation.user_name = user_name
+    
  
 
     def addTweetDict(tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         Conversation.tweets[tweet_id] = Tweet(tweet_id, user, text, time, lang, reply_user, reply_tweet)
-
 
     def addTweetConversation(self, tweet_id, end = False):
         tweet = Conversation.tweets[tweet_id]
@@ -58,7 +57,6 @@ class Conversation:
                 self.addTweetConversation(tweet_id)
                
         self.length = len(self)
-
 
     def getTweet(self, tweetid):
        
@@ -103,7 +101,6 @@ class Conversation:
             Conversation.addTweetDict(tweet_id, user, text, created, lang,
                               reply_user, reply_tweet)
 
-
     def replyIdList():
         query = """SELECT in_reply_to_tweet_id FROM tweets
         WHERE in_reply_to_tweet_id NOT NULL;"""
@@ -116,15 +113,12 @@ class Conversation:
     
     def containsUser(self):
         self.startingDate()
-        user = 0
-        starter = Conversation.tweets[self.tweets_lst[0]].user == Conversation.user_id
+        contains = False
         for tweet in self.tweets_lst:
             tweet = Conversation.tweets[tweet]
             if tweet.user == Conversation.user_id:
-                user = user + 1
-        if (starter and user == 1) or user == 0:
-            return False
-        return True
+                contains = True
+        return contains
    
     
     def startingDate(self):
@@ -146,14 +140,12 @@ class Conversation:
         else:
             return len(self.tweets_lst)
 
-
     def __return__(self):
         return [Conversation.tweets[tweet] for tweet in self.tweets_lst]
        
  
 class Tweet:
-
-    
+   
     def __init__(self, tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         self.tweet_id = tweet_id
         self.user = user
@@ -163,11 +155,9 @@ class Tweet:
         self.reply_tweet = reply_tweet
         self.time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S+00:00')
    
-    
     def __str__(self):
         return 'ID:{} user:{} text:{} lang:{} reply_user:{} reply_tweet:{} created:{}'.format(self.tweet_id,
                    self.user, self.text, self.lang, self.reply_user, self.reply_tweet, self.time)
-
  
 def listToDict(lst):
     dicti = {}
@@ -177,7 +167,6 @@ def listToDict(lst):
         else:
             dicti[str(i)] = 1
     return dicti
-
  
 def makeConversations(user_id, user_name):
     Conversation.setup(user_id, user_name)
@@ -194,17 +183,11 @@ def makeConversations(user_id, user_name):
     return listToDict(times)
 
 
-if __name__ == "__main__":
-    # execute only if run as a script
-    
-    makeConversations(user_id = '22536055', user_name='AmericanAir')
-    
-    
-    
-    times = [len(conv) for conv in conversationList]
-    
-    dicti = listToDict(times)
-    print(dicti)
+makeConversations(user_id = '22536055', user_name='AmericanAir')
+times = [len(conv) for conv in conversationList]
+
+dicti = listToDict(times)
+print(dicti)
 
 """
 @Robin vragen om met intervallen te kijken, en kijken naar begin van converstaions blablabla @ZENO

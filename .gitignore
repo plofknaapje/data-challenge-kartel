@@ -213,3 +213,5 @@ mydb.sqlite3
 .DS_Store
 response_time.db
 >>>>>>> 9f88d0e7e837d24ca769ed49330753c7a1310e60
+sentiment_airlines.csv
+*.pkl

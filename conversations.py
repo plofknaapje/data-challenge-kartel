@@ -25,8 +25,8 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
 
 # Default for AA
 # change here to edit which airline you want to see
-user_id = airlines_id[3]
-user_name = airlines_names[3]
+user_id = airlines_id[2]
+user_name = airlines_names[2]
 
 
 class Conversation:
@@ -214,18 +214,25 @@ if __name__ == "__main__":
         datetimeLst['hour'].append(dt.hour)
         datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
         datetimeLst['length'].append(conv.length)
-        
+
     df = pd.DataFrame(datetimeLst)
-    amount_results = df.groupby(['date','hour']).size().reset_index().rename(columns={0:'count'})
+    amount_results = df.groupby(['date', 'hour']).size().reset_index().rename(columns={0:'count'})
+    time_results = df.groupby(['date', 'hour']).median().reset_index().rename(columns={0:'length'})
     amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
+    time_results['date'] = pd.to_datetime(time_results['date'], format='%Y-%m-%d')
     amount_results['day'] = amount_results['date'].dt.weekday
+    time_results['day'] = amount_results['date'].dt.weekday
     amount_results.drop(['date'], axis=1)
+    time_results.drop(['date'], axis=1)
     amount_results = amount_results.groupby(['day', 'hour']).median().reset_index()
+    time_results = time_results.groupby(['day', 'hour']).median().reset_index()
     amount_results = amount_results.pivot('hour', 'day', 'count')
+    time_results = time_results.pivot('hour', 'day', 'length')
+
 
     # amount_results[3][10] = amount_results[3].median()
-    fig, ax = plt.subplots(figsize=(8,4))
-    sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax)
+    fig, ax = plt.subplots(figsize=(10,5))
+    sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax, annot=time_results)
     # ax.invert_yaxis()
     plt.xlabel("day of the week")
     plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])

@@ -32,11 +32,31 @@ user_id = airlines_id[3]
 user_name = airlines_names[3]
 
 df = pd.read_csv('sentiment_airlines.csv')
-df = df[df != 0]
-print(df.columns)
+for value in df["AmericanAir"].unique():
+    if type(value) == str:
+        break
+    elif float(value) == 0:
+        df.replace(to_replace=value, value="Neutral", inplace=True)
+    elif float(value) >= 0.5:
+        df.replace(to_replace=value, value="Positive", inplace=True)
+    elif float(value) <= -0.5:
+        df.replace(to_replace=value, value="Negative", inplace=True)
+    elif 0.5 > float(value) > 0:
+        df.replace(to_replace=value, value="Slightly positive", inplace=True)
+    elif -0.5 < float(value) < 0:
+        df.replace(to_replace=value, value="Slightly negative", inplace=True)
+    elif AttributeError:
+            break
+    elif ValueError:
+            break
+print(df)
+df.to_csv("amairdiscretized.csv", sep=",")
+# print(df)
+"""
 plt.figure(figsize=[8,4])
 print(len(df['AmericanAir'].dropna()))
-sns.kdeplot(df['AmericanAir'].dropna(), bw=.1)
-sns.kdeplot(df['British_Airways'].dropna(), bw=.1)
-sns.kdeplot(df['RyanAir'].dropna(), bw=.1)
+sns.kdeplot(df['AmericanAir'].dropna(), bw=.1, cut=0)
+sns.kdeplot(df['British_Airways'].dropna(), bw=.1, cut=0)
+sns.kdeplot(df['RyanAir'].dropna(), bw=.1, cut=0)
 plt.show()
+"""

@@ -4,14 +4,16 @@ Created on Tue May 22 15:47:09 2018
 
 @author: 20166843
 """
-import access
 from datetime import datetime, timedelta
 import seaborn as sns; sns.set()
 import pandas as pd
 import matplotlib.pyplot as plt
+from textblob import TextBlob
+import re
+import sqlite3
+import numpy as np
 
-
-database = access.db
+database = sqlite3.connect('data/mydb.sqlite3')
 conversationList = []
 
 airlines_id = ["56377143", "106062176", "18332190", "22536055", "124476322", "26223583", "2182373406", "38676903",
@@ -25,8 +27,8 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
 
 # Default for AA
 # change here to edit which airline you want to see
-user_id = airlines_id[2]
-user_name = airlines_names[2]
+user_id = airlines_id[3]
+user_name = airlines_names[3]
 
 
 class Conversation:
@@ -145,7 +147,29 @@ class Conversation:
             tweet = Conversation.tweets[tweet]
             if tweet.time < self.time:
                 self.time = tweet.time
-            
+    
+    
+    def sentimentChange(self):
+        before = None
+        interception = False
+        changes = []
+        for tweet in self.tweets_lst:
+            tweet = Conversation.tweets[tweet]
+            if tweet.user != user_id and not interception:
+                before = tweet.sentiment
+            elif tweet.user == user_id:
+                interception = True
+            elif tweet.user != user_id and interception:
+                if before != None:
+                    changes.append(tweet.sentiment-before)
+                before = tweet.sentiment
+                interception = False
+        if len(changes) > 0:
+            self.sentiment = np.mean(changes)
+        else:
+            self.sentiment = 0
+                
+
 
     def __len__(self):
         if True:
@@ -157,6 +181,7 @@ class Conversation:
             return len(self.tweets_lst) + 1
         else:
             return len(self.tweets_lst)
+
 
     def __return__(self):
         return [Conversation.tweets[tweet] for tweet in self.tweets_lst]
@@ -172,11 +197,44 @@ class Tweet:
         self.reply_user = reply_user
         self.reply_tweet = reply_tweet
         self.time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S+00:00')
+        
+    
+    def processTweet(self):
+        # process the tweets
+        tweet = self.text
+        #Convert to lower case
+        tweet = tweet.lower()
+        #Convert www.* or https?://* to URL
+        tweet = re.sub('((www.[^\s]+)|(https?://[^\s]+))','URL',tweet)
+        #Convert @username to AT_USER
+        tweet = re.sub('@[^\s]+','AT_USER',tweet)
+        #Remove additional white spaces
+        tweet = re.sub('[\s]+', ' ', tweet)
+        #Replace #word with word
+        tweet = re.sub(r'#([^\s]+)', r'\1', tweet)
+        #trim
+        return tweet
+    
+    
+    def sentimentScore(self):
+        text = self.processTweet()
+        blob = TextBlob(text)
+        self.sentiment = blob.sentiment.polarity
    
     def __str__(self):
         return 'ID:{} user:{} text:{} lang:{} reply_user:{} reply_tweet:{} created:{}'.format(self.tweet_id,
                    self.user, self.text, self.lang, self.reply_user, self.reply_tweet, self.time)
  
+def classify():
+    for id_ in Conversation.tweets.keys():
+        Conversation.tweets[id_].sentimentScore()
+    
+
+def calcChanges():
+    for conv in conversationList:
+        conv.sentimentChange()   
+   
+    
 def listToDict(lst):
     dicti = {}
     for i in lst:
@@ -203,49 +261,100 @@ def makeConversations(user_id, user_name):
 
 if __name__ == "__main__":
     # execute only if run as a script
-    
     dicti = makeConversations(user_id, user_name)
+    classify()
+    calcChanges()
+    if False:
+        datetimeLst = {'hour':[], 'length':[], 'date':[]}
+        for conv in conversationList:
+            dt = conv.time
+            if user_name == 'AmericanAir':
+                dt = dt - timedelta(hours=6)
+            datetimeLst['hour'].append(dt.hour)
+            datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
+            datetimeLst['length'].append(conv.length)
     
-    datetimeLst = {'hour':[], 'length':[], 'date':[]}
-    for conv in conversationList:
-        dt = conv.time
-        if user_name == 'AmericanAir':
-            dt = dt - timedelta(hours=6)
-        datetimeLst['hour'].append(dt.hour)
-        datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
-        datetimeLst['length'].append(conv.length)
+        df = pd.DataFrame(datetimeLst)
+        amount_results = df.groupby(['date', 'hour']).size().reset_index().rename(columns={0:'count'})
+        time_results = df.groupby(['date', 'hour']).median().reset_index().rename(columns={0:'length'})
+        amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
+        time_results['date'] = pd.to_datetime(time_results['date'], format='%Y-%m-%d')
+        amount_results['day'] = amount_results['date'].dt.weekday
+        time_results['day'] = amount_results['date'].dt.weekday
+        amount_results.drop(['date'], axis=1)
+        time_results.drop(['date'], axis=1)
+        amount_results = amount_results.groupby(['day', 'hour']).median().reset_index()
+        time_results = time_results.groupby(['day', 'hour']).median().reset_index()
+        amount_results = amount_results.pivot('hour', 'day', 'count')
+        time_results = time_results.pivot('hour', 'day', 'length')
+        
+        
+        fig, ax = plt.subplots(figsize=(10,5))
+        sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax, annot=time_results)
+        # ax.invert_yaxis()
+        plt.xlabel("day of the week")
+        plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+        plt.ylabel("hour of the day")
+        plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
+                13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
+               ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
+                "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
+                "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
+                "21:00", "22:00", "23:00"], rotation=0)
+        plt.title('Median amount of conversation with {}'.format(user_name))
+        plt.plot()
+        plt.show()
+    
+    for tweet in conversationList[1].tweets_lst:
+        tweet = Conversation.tweets[tweet]
+        print(tweet.user, tweet.sentiment)
+    conversationList[2].sentimentChange()
+    print(conversationList[2].sentiment)
 
-    df = pd.DataFrame(datetimeLst)
-    amount_results = df.groupby(['date', 'hour']).size().reset_index().rename(columns={0:'count'})
-    time_results = df.groupby(['date', 'hour']).median().reset_index().rename(columns={0:'length'})
-    amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
-    time_results['date'] = pd.to_datetime(time_results['date'], format='%Y-%m-%d')
-    amount_results['day'] = amount_results['date'].dt.weekday
-    time_results['day'] = amount_results['date'].dt.weekday
-    amount_results.drop(['date'], axis=1)
-    time_results.drop(['date'], axis=1)
-    amount_results = amount_results.groupby(['day', 'hour']).median().reset_index()
-    time_results = time_results.groupby(['day', 'hour']).median().reset_index()
-    amount_results = amount_results.pivot('hour', 'day', 'count')
-    time_results = time_results.pivot('hour', 'day', 'length')
-
-
-    # amount_results[3][10] = amount_results[3].median()
-    fig, ax = plt.subplots(figsize=(10,5))
-    sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax, annot=time_results)
-    # ax.invert_yaxis()
-    plt.xlabel("day of the week")
-    plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-    plt.ylabel("hour of the day")
-    plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
-            13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
-           ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
-            "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
-            "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
-            "21:00", "22:00", "23:00"], rotation=0)
-    plt.title('Median amount of conversation with {}'.format(user_name))
-    plt.plot()
-    plt.show()
+    tweet = list(Conversation.tweets.keys())[0]
+    print(Conversation.tweets[tweet].sentiment   ) 
+    if True:
+        datetimeLst = {'hour':[], 'sentiment':[], 'date':[]}
+        for conv in conversationList:
+            dt = conv.time
+            if user_name == 'AmericanAir':
+                dt = dt - timedelta(hours=6)
+            datetimeLst['hour'].append(dt.hour)
+            datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
+            lst = []
+            for tweet in conv.tweets_lst:
+                tweet = Conversation.tweets[tweet]
+                if tweet.user != user_id:
+                    lst.append(tweet.sentiment)
+            sentiment = np.mean(lst)
+            datetimeLst['sentiment'].append(sentiment)
+    
+        df = pd.DataFrame(datetimeLst)
+        amount_results = df.groupby(['date', 'hour']).mean().reset_index().rename(columns={0:'sentiment'})
+        amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
+        amount_results['day'] = amount_results['date'].dt.weekday
+        amount_results.drop(['date'], axis=1)
+        amount_results = amount_results.groupby(['day', 'hour']).mean().reset_index()
+        amount_results = amount_results.pivot('hour', 'day', 'sentiment')
+        
+        
+        #amount_results[3][10] = amount_results[3].median()
+        fig, ax = plt.subplots(figsize=(10,5))
+        sns.heatmap(amount_results, cmap='Blues', vmin=0)
+        
+        ax.invert_yaxis()
+        plt.xlabel("day of the week")
+        plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+        plt.ylabel("hour of the day")
+        plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
+                13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
+               ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
+                "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
+                "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
+                "21:00", "22:00", "23:00"], rotation=0)
+        plt.title('Mean sentiment of users in conversation with {}'.format(user_name))
+        plt.plot()
+        plt.show()
     # times = [len(conv) for conv in conversationList]
     
     

@@ -36,5 +36,11 @@ for airline in df:
 del disclist[0]
 
 
-print(disclist)
+for airline in disclist:
+    summ = 0
+    for sentiment in airline:
+        summ += sentiment
+        sentiment = sentiment/summ
+    print(airline, summ)
+
 plt.show()

@@ -24,6 +24,7 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 
 # Default for AA
+# change here to edit which airline you want to see
 user_id = airlines_id[3]
 user_name = airlines_names[3]
 
@@ -219,12 +220,13 @@ if __name__ == "__main__":
     amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
     amount_results['day'] = amount_results['date'].dt.weekday
     amount_results.drop(['date'], axis=1)
-    amount_results = amount_results.groupby(['day', 'hour']).mean().reset_index()
+    amount_results = amount_results.groupby(['day', 'hour']).median().reset_index()
     amount_results = amount_results.pivot('hour', 'day', 'count')
-    
-    ax = sns.heatmap(amount_results, cmap='Blues')
-    ax.invert_yaxis()
-    ax
+
+    # amount_results[3][10] = amount_results[3].median()
+    fig, ax = plt.subplots(figsize=(8,4))
+    sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax)
+    # ax.invert_yaxis()
     plt.xlabel("day of the week")
     plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
     plt.ylabel("hour of the day")
@@ -234,8 +236,9 @@ if __name__ == "__main__":
             "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
             "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
             "21:00", "22:00", "23:00"], rotation=0)
-    plt.title('Average amount of conversation with {}'.format(user_name))
+    plt.title('Median amount of conversation with {}'.format(user_name))
     plt.plot()
+    plt.show()
     # times = [len(conv) for conv in conversationList]
     
     

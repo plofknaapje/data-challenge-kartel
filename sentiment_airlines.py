@@ -336,3 +336,15 @@ for airline in airlines_names:
 
 dfairlines.head()
 dfairlines.to_csv('sentiment_airlines.csv')
+dfairlines
+
+
+df_sentiment = pd.DataFrame()
+bin = [-1, -0.75, -0.25, -0.000001, 0.000001, 0.25, 0.75, 1]
+labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
+df12 = pd.read_csv('sentiment_airlines.csv')
+for airline in airlines_names:
+    category = pd.cut(df12[airline], bin, labels = labels)
+    df_sentiment[airline] = category.to_frame()
+df_sentiment.to_csv('labeled_sentiment.csv')
+

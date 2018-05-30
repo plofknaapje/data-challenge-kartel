@@ -33,7 +33,8 @@ disclist = []
 df = pd.read_csv('labeled_sentiment.csv', low_memory=False)
 for airline in df:
     disclist.append(df[airline].value_counts().sort_values())
+del disclist[0]
 
-sns.set_color_codes("pastel")
 
+print(disclist)
 plt.show()

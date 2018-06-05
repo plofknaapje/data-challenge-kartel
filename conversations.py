@@ -30,6 +30,18 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
 user_id = airlines_id[3]
 user_name = airlines_names[3]
 
+class Airline:
+    """
+    
+    """
+    def __init__(self, user_name, user_id):
+        self.name = user_name
+        self.id = user_id
+        self.tweets = {}
+        self.reply_ids = []
+    
+    
+
 
 class Conversation:
     
@@ -190,6 +202,15 @@ class Conversation:
 class Tweet:
    
     def __init__(self, tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
+        """
+        Creates new Tweet object and its variables
+        :param tweet_id: str of the tweet id
+        :param user: str of user id
+        :param text: str of tweet text
+        :param reply_user: str of user id to which tweet replies or None
+        :param reply_tweet: str of tweet id to which tweet replies or None
+        :param time: str for datetime object in '%Y-%m-%d %H:%M:%S' format
+        """
         self.tweet_id = tweet_id
         self.user = user
         self.text = text
@@ -200,6 +221,10 @@ class Tweet:
         
     
     def processTweet(self):
+        """
+        Cleans the text of the tweet
+        :return: str of cleaned tweet text
+        """
         # process the tweets
         tweet = self.text
         #Convert to lower case
@@ -217,6 +242,10 @@ class Tweet:
     
     
     def sentimentScore(self):
+        """
+        Scores the sentiment of a tweet with textblob
+        :return: float of sentiment of tweet between -1 and 1
+        """
         text = self.processTweet()
         blob = TextBlob(text)
         self.sentiment = blob.sentiment.polarity
@@ -226,16 +255,27 @@ class Tweet:
                    self.user, self.text, self.lang, self.reply_user, self.reply_tweet, self.time)
  
 def classify():
+    """
+    Classifies all tweets in the Conversation.tweets dictionary
+    """
     for id_ in Conversation.tweets.keys():
         Conversation.tweets[id_].sentimentScore()
     
 
 def calcChanges():
+    """
+    Calculates the sentiment change of each conversation in the conversation list
+    """
     for conv in conversationList:
         conv.sentimentChange()   
    
     
 def listToDict(lst):
+    """
+    Turns a list into a dictionary with counts of duplicate text
+    :param lst: List of ints or strings
+    :return: Dictionary with counts of each unique item
+    """
     dicti = {}
     for i in lst:
         if str(i) in dicti.keys():
@@ -245,14 +285,23 @@ def listToDict(lst):
     return dicti
  
 def makeConversations(user_id, user_name):
+    """
+    Checks all tweets for conversations
+    :param user_id: str of the client id
+    :param user_name: str of the client screen name
+    :return: Dictionary with conversation length frequencies
+    """
     Conversation.setup(user_id, user_name)
     Conversation.replyIdList()
     Conversation.addTweets()
-
+    
+    # For every tweet which was found by Conv.addTweets()
     for tweet_id in list(Conversation.tweets.keys()):
+        # Only for tweets which were not replyed to, do:
         if not tweet_id in Conversation.reply_ids:
             conversation = Conversation()
             conversation.addTweetConversation(tweet_id)
+            # Only save converations which are longer than 1 and contain interaction
             if conversation.length > 1 and conversation.containsUser():
                 conversationList.append(conversation)
     times = [len(conv) for conv in conversationList]
@@ -313,7 +362,7 @@ if __name__ == "__main__":
 
     tweet = list(Conversation.tweets.keys())[0]
     print(Conversation.tweets[tweet].sentiment   ) 
-    if True:
+    if False:
         datetimeLst = {'hour':[], 'sentiment':[], 'date':[]}
         for conv in conversationList:
             dt = conv.time
@@ -357,7 +406,45 @@ if __name__ == "__main__":
         plt.show()
     # times = [len(conv) for conv in conversationList]
     
-    
+    if True:
+        datetimeLst = {'sentiment':[], 'length':[]}
+        bin = [-1, -0.75, -0.25, -0.0001, 0.0001, 0.25, 0.75, 1]
+        labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
+
+        for conv in conversationList:
+            tweet = conv.tweets_lst[0]
+            tweet = Conversation.tweets[tweet]
+            if tweet.user != user_id:
+                begin = tweet.sentiment
+            else:
+                tweet = conv.tweets_lst[1]
+                tweet = Conversation.tweets[tweet]
+                begin = tweet.sentiment 
+            tweet = conv.tweets_lst[-1]
+            tweet = Conversation.tweets[tweet]
+            if tweet.user != user_id:
+                sentiment = tweet.sentiment
+            else:
+                tweet = conv.tweets_lst[-2]
+                tweet = Conversation.tweets[tweet]
+                sentiment = tweet.sentiment   
+            datetimeLst['sentiment'].append(conv.sentiment)
+            datetimeLst['length'].append(conv.length)
+        df = pd.DataFrame(datetimeLst)
+        binned = pd.cut(df['sentiment'], bin, labels=labels)
+        df['sentiment'] = binned
+        df = df.groupby('length')['sentiment'].value_counts().unstack().fillna(0)
+        labels.reverse()
+        df = df.loc[:,labels]
+        df = df.loc[range(3,11), :]
+        df["sum"] = df.sum(axis=1)
+        df_new = df.loc[:,labels].div(df["sum"], axis=0)
+        df_new.plot.bar(stacked=True, figsize=(10,7),xlim=list([2,10]), cmap='coolwarm')
+        plt.title('Relative distribution of sentiment for length')
+        plt.plot()
+        plt.show()
+
+        
     '''
     dicti = listToDict(times)
     print(dicti)

@@ -27,26 +27,45 @@ airlines_dict = {'56377143': 'KLM', '106062176': 'AirFrance', '18332190': 'Briti
 # change here to edit which airline you want to see
 
 class Airline:
-    """
     
     """
+    Contains all the Conversation objects for one airline and the methodes to
+    change them all at the same time.
+    """
+    
     tweets = {}
     
     def __init__(self, user_name, user_id):
+        """
+        Initializes a new Airline Object
+        :param user_name: str Twitter username of airline
+        :param user_id: str Twitter userid of airline
+        """
         self.name = user_name
         self.id = user_id
         self.reply_ids = []
         self.conversations = []
         self.tweets = []
+        # Fills reply_ids list with the ids of tweets which have been replied to
         self.reply_ids = Airline.replyIdList()
+        # Fills class tweets dict with Tweet object which are related to the airline
         self.addTweets()
+        # Checks all Tweet objects and builds them into conversations
         self.makeConversations()
-        self.sentimentChanges()
+        # Executes sentiment analysis on all Conversation objects
+        # self.sentimentChanges()
         
 
     def addTweets(self, start_date = '2016-02-01 00:00:00', 
                   end_date = '2017-06-01 00:00:00'):
-        
+        """
+        Adds all tweets as Tweet objects to the tweet list which:
+            a. Were sent betweet start_date and end_date and
+            b. Were either sent by the airline, a reply to the airline or 
+                contains @user_name
+        :param start_date: Datetime string to indicate starting moment
+        :param end_date: Datetime string to indicate ending moment
+        """
         query = """SELECT * FROM tweets WHERE (user_id == {} OR
             in_reply_to_user_id == {} OR text LIKE '%@{}%') AND
             datetime(created_at) >= datetime('{}') AND
@@ -64,33 +83,39 @@ class Airline:
             reply_tweet = row[4]
             reply_user = row[5]
             lang = row[6]
+            # Adds the tweet as Tweet object to the class dict tweets with id as key
             Airline.addTweetDict(tweet_id, user, text, created, lang,
                               reply_user, reply_tweet)
+            # Adds the tweet id to the tweet list
             self.tweets.append(tweet_id)
             
         
-        
     def getTweet(tweetid):
-        if tweetid in Airline.tweets.keys():
-            return Airline.tweets[tweetid]
-        else:
-            q = """SELECT * FROM tweets WHERE tweet_id == {}""".format(tweetid)
-            cursor = database.cursor()
-           
-            try:
-                cursor.execute(q)
-                tweet = cursor.fetchall()[0]
-                database.commit()
-                """id, date, user, text, replt tweet, reply user, lang"""
-                Airline.addTweetDict(tweet[0], tweet[2], tweet[3],
-                                    tweet[1], tweet[6], tweet[4], tweet[5])
-                return True
-            except:
-                database.commit()
-                return None
+        """
+        Checks if tweet with tweet_id exists in the database and adds it if possible
+        :param tweetid: str tweet id
+        :return: bool if tweet was added to class tweets dict
+        """
+        q = """SELECT * FROM tweets WHERE tweet_id == {}""".format(tweetid)
+        cursor = database.cursor()
+       
+        try:
+            cursor.execute(q)
+            tweet = cursor.fetchall()[0]
+            database.commit()
+            """id, date, user, text, replt tweet, reply user, lang"""
+            Airline.addTweetDict(tweet[0], tweet[2], tweet[3],
+                                tweet[1], tweet[6], tweet[4], tweet[5])
+            return True
+        except:
+            database.commit()
+            return False
 
     
     def sentimentChanges(self):
+        """
+        Calls classify function and calculates sentiment change for each Conversation
+        """
         Airline.classify()
         for conv in self.conversations:
             conv.sentimentChange(self.id)
@@ -119,16 +144,25 @@ class Airline:
         Classifies all tweets in the Conversation.tweets dictionary
         """
         for id_ in Airline.tweets.keys():
-            Airline.tweets[id_].sentimentScore()
+            tweet = Airline.tweets[id_]
+            if tweet.sentiment == None:
+                tweet.sentimentScore()
 
     
     def addTweetDict(tweet_id, user, text, time, lang, 
                      reply_user = '', reply_tweet = ''):
+        """
+        Creates new Tweet object and adds it to the class tweet dict
+        """
         Airline.tweets[tweet_id] = Tweet(tweet_id, user, text, time, 
                                       lang, reply_user, reply_tweet)
 
 
     def replyIdList():
+        """
+        Creates list with all the unique tweet_id's to which has been replied
+        :return: set with str tweet ids
+        """
         query = """SELECT in_reply_to_tweet_id FROM tweets
         WHERE in_reply_to_tweet_id NOT NULL;"""
         cursor = database.cursor()
@@ -140,17 +174,17 @@ class Airline:
 
 class Conversation:
     
-    '''
+    """
     Class which contains a class dictionary with all relevant tweets as Tweet
     objects.
     Also contains a list with all tweets to which was replied.
-    '''
+    """
    
     def __init__(self, airline, id_):
-        '''
+        """
         Initializes basic variables of the object.
         :param tweets: optional dictionary to skip the building of the dict.
-        '''
+        """
         self.length = 0
         self.airline = airline
         self.id = id_
@@ -158,6 +192,10 @@ class Conversation:
         
     
     def containsUser(self):
+        """
+        Checks if Conversation contains a tweet from airline
+        :return: bool. contains tweet from airline
+        """
         self.startingDate()
         contains = False
         for tweet in self.tweets_lst:
@@ -168,6 +206,10 @@ class Conversation:
    
     
     def startingDate(self):
+        """
+        Computes starting Datetime of Conversation by finding the oldest tweet 
+        saves the result in object variable
+        """
         self.time = datetime.strptime('2017-06-01 00:00:00', '%Y-%m-%d %H:%M:%S')
         for tweet in self.tweets_lst:
             tweet = Airline.tweets[tweet]
@@ -176,15 +218,24 @@ class Conversation:
     
     
     def sentimentChange(self, user_id):
+        """
+        Computes the sentiment change in conversation caused by interceptions 
+        by user_id. Stores sentiment in object sentiment variable
+        :param user_id: str user_id of user trying to influence sentiment
+        """
         before = None
         interception = False
         changes = []
         for tweet in self.tweets_lst:
             tweet = Airline.tweets[tweet]
+            # Finds first tweet after start or interception not by user
             if tweet.user != user_id and not interception:
                 before = tweet.sentiment
+            # Checks for interception
             elif tweet.user == user_id:
                 interception = True
+            # If intercept happened and there is a new tweet from not user,
+            # Calculate the difference in sentiment
             elif tweet.user != user_id and interception:
                 if before != None:
                     changes.append(tweet.sentiment-before)
@@ -193,10 +244,17 @@ class Conversation:
         if len(changes) > 0:
             self.sentiment = np.mean(changes)
         else:
-            self.sentiment = 0
+            self.sentiment = None
                 
     
     def addTweetConversation(self, tweet_id, end = False):
+        """
+        Adds a tweet to the tweet_lst and if tweet is a reply, recursively
+        adds the replied to tweet. Sets length of conversation
+        :param tweet_id: str tweet_id of tweet to be added
+        :param end: bool stops the recursion if True
+        """
+        
         tweet = Airline.tweets[tweet_id]
         if end:
             self.tweets_lst.append(tweet_id)
@@ -207,12 +265,15 @@ class Conversation:
         if tweet.reply_tweet in Airline.tweets.keys():
             self.addTweetConversation(tweet_id)
         elif tweet_id != None:
-            if Airline.getTweet(tweet_id):
+            if Airline.getTweet(tweet_id) == True:
                 self.addTweetConversation(tweet_id)
         self.length = len(self)
 
 
     def __len__(self):
+        """
+        :return: int length of tweets_lst
+        """
         if True:
             return len(self.tweets_lst)
         tweet = Airline.tweets[self.tweets_lst[0]]
@@ -225,6 +286,9 @@ class Conversation:
 
 
     def __return__(self):
+        """
+        :return: list Tweet object of tweet_ids in tweets_lst
+        """
         return [Airline.tweets[tweet] for tweet in self.tweets_lst]
        
  
@@ -247,6 +311,7 @@ class Tweet:
         self.reply_user = reply_user
         self.reply_tweet = reply_tweet
         self.time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S+00:00')
+        self.sentiment = None
         
     
     def processTweet(self):

@@ -297,4 +297,4 @@ for conversation in conversationList:
 with open('Conversations_VirginAtlantic.pkl', 'wb') as f:
     pickle.dump(conversationList, f)
 
-
+tweet_sentiment_score

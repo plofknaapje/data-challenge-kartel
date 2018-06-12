@@ -53,7 +53,7 @@ class Airline:
         # Checks all Tweet objects and builds them into conversations
         self.makeConversations()
         # Executes sentiment analysis on all Conversation objects
-        # self.sentimentChanges()
+        #self.sentimentChanges()
         
 
     def addTweets(self, start_date = '2016-02-01 00:00:00', 
@@ -137,6 +137,24 @@ class Airline:
                     self.conversations.append(conversation)
         times = [len(conv) for conv in self.conversations]
         self.conversationLengths = listToDict(times)
+    
+    
+    def airlineSentimentDeltas(self):
+        """
+        Runs sentimentDeltas on all conversations and combines the results into
+        one dictionary.
+        :return: dict with all interactions between airline and user with start
+        and end sentiment and the delta
+        """
+        dict = {'user':[], 'start':[], 'end':[], 'delta':[]}
+        for conv in self.conversations:
+            sentChange = conv.sentimentDeltas(self.id)
+            valdict = sentChange[0]
+            isdict = sentChange[1]
+            if isdict:
+                for i in ['user', 'start', 'end', 'delta']:
+                    dict[i] = dict[i] + valdict[i]
+        return pd.DataFrame(dict)
     
     
     def classify():
@@ -268,6 +286,59 @@ class Conversation:
             if Airline.getTweet(tweet_id) == True:
                 self.addTweetConversation(tweet_id)
         self.length = len(self)
+    
+    
+    def sentimentDeltas(self, airline_id):
+        """
+        Returns sentiment interactions in relation to airline_id
+        Looks in conversation for the sequence user tweet, airline tweet, user tweet
+        and reports the start sentiment, end sentiment, userid and delta of the sentiments.
+        :param airline_id: str of id to which the conversations are made.
+        :return: list with the dict and True or 'No' and False
+        """
+        users = []
+        tweets = []
+        
+        user_list = []
+        start_list = []
+        end_list = []
+        delta_list = []
+        
+        for tweet in self.tweets_lst:
+            tweets.append(Airline.tweets[tweet])
+            tweet = Airline.tweets[tweet]
+            user = tweet.user
+            if not user in users and not user == airline_id:
+                users.append(user)
+            if tweet.sentiment == None:
+                tweet.sentimentScore()
+                
+        for user in users:
+            start = None
+            end = None
+            intercept = False
+            for tweet in tweets:
+                tweet_user = tweet.user
+                sentiment = tweet.sentiment
+                if tweet_user == user:
+                    if start == None or not intercept:
+                        start = sentiment
+                    elif intercept:
+                        end = sentiment
+                        delta = end - start
+                        user_list.append(user)
+                        start_list.append(start)
+                        end_list.append(end)
+                        delta_list.append(delta)
+                        start = sentiment
+                        intercept = False
+                if tweet_user == airline_id and start != None:
+                        intercept = True
+        dict = {'user':user_list, 'start':start_list, 'end':end_list, 'delta':delta_list}
+        if len(user_list) > 0:
+            return [dict, True]
+        else:
+            return ['No', False]
 
 
     def __len__(self):
@@ -367,14 +438,18 @@ def listToDict(lst):
 if __name__ == "__main__":
     # execute only if run as a script
     airlines = {}
-    for airline in airlines_id[1:3]:
+    for airline in [airlines_id[5]]:
         airlines[airline] = Airline(airlines_dict[airline], airline)
-    
+        Airline.classify()
+        df = airlines[airline].airlineSentimentDeltas() 
+
     for airline in list(airlines.keys()):
         airline = airlines[airline]
         print(airline.name)
         print(airline.conversationLengths)
-
+    
+    conv = airlines['26223583'].conversations[0]
+    print(conv.sentimentDeltas(airlines_id[5]))
     if False:
         datetimeLst = {'hour':[], 'length':[], 'date':[]}
         for conv in conversationList:
@@ -424,6 +499,7 @@ if __name__ == "__main__":
     
         tweet = list(Conversation.tweets.keys())[0]
         print(Conversation.tweets[tweet].sentiment   ) 
+        
     if False:
         datetimeLst = {'hour':[], 'sentiment':[], 'date':[]}
         for conv in conversationList:
@@ -472,24 +548,10 @@ if __name__ == "__main__":
         datetimeLst = {'sentiment':[], 'length':[]}
         bin = [-1, -0.75, -0.25, -0.0001, 0.0001, 0.25, 0.75, 1]
         labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
-
+        conversationList = airlines['22536055']
         for conv in conversationList:
             tweet = conv.tweets_lst[0]
             tweet = Conversation.tweets[tweet]
-            if tweet.user != user_id:
-                begin = tweet.sentiment
-            else:
-                tweet = conv.tweets_lst[1]
-                tweet = Conversation.tweets[tweet]
-                begin = tweet.sentiment 
-            tweet = conv.tweets_lst[-1]
-            tweet = Conversation.tweets[tweet]
-            if tweet.user != user_id:
-                sentiment = tweet.sentiment
-            else:
-                tweet = conv.tweets_lst[-2]
-                tweet = Conversation.tweets[tweet]
-                sentiment = tweet.sentiment   
             datetimeLst['sentiment'].append(conv.sentiment)
             datetimeLst['length'].append(conv.length)
         df = pd.DataFrame(datetimeLst)
@@ -506,8 +568,7 @@ if __name__ == "__main__":
         plt.plot()
         plt.show()
 
-        
-    '''
-    dicti = listToDict(times)
-    print(dicti)
-    '''
+    
+lst = []
+lst.append(None)
+print(lst)

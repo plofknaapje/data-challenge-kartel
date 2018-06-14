@@ -11,7 +11,8 @@ files = "airlines_complete"
 test_file = "airlines_complete/airlines-1464602228450.json"
 
 db = sqlite3.connect('data/mydb.sqlite3')
-cursor = db.cursor()
+db1 = sqlite3.connect('data/myd.sqlite3')
+cursor = db1.cursor()
 
 try:
     cursor.execute('''
@@ -114,4 +115,4 @@ def build_database(db, directory = files):
 
 
 if __name__ == "__main__":
-    build_database(db)
+    build_database(db1)

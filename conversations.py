@@ -12,6 +12,7 @@ from textblob import TextBlob
 import re
 import sqlite3
 import numpy as np
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 database = sqlite3.connect('data/mydb.sqlite3')
 
@@ -24,7 +25,8 @@ airlines_other_id = ["56377143", "106062176", "18332190", "124476322", "26223583
 airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "AirBerlin", "AirBerlin assist", "easyJet",
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 airlines_dict = {'56377143': 'KLM', '106062176': 'AirFrance', '18332190': 'British_Airways', '22536055': 'AmericanAir', '124476322': 'Lufthansa', '26223583': 'AirBerlin', '2182373406': 'AirBerlin assist', '38676903': 'easyJet', '1542862735': 'RyanAir', '253340062': 'SingaporeAir', '218730857': 'Qantas', '45621423': 'EtihadAirways', '20626359': 'VirginAtlantic'}
-# change here to edit which airline you want to see
+
+analyser = SentimentIntensityAnalyzer()
 
 class Airline:
     
@@ -412,8 +414,8 @@ class Tweet:
         :return: float of sentiment of tweet between -1 and 1
         """
         text = self.processTweet()
-        blob = TextBlob(text)
-        self.sentiment = blob.sentiment.polarity
+        blob = analyser.polarity_scores(text)
+        self.sentiment = blob['compound']
    
     def __str__(self):
         return 'ID:{} user:{} text:{} lang:{} reply_user:{} reply_tweet:{} created:{}'.format(self.tweet_id,

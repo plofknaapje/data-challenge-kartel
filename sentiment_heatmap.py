@@ -59,6 +59,18 @@ fig = gmaps.figure()
 fig.add_layer(gmaps.heatmap_layer(locations_df))
 fig
 
- 
+airports = []
+with open(r'C:\Users\20175876\Documents\DC1 (1)\airports.csv', 'rb') as csvfile:
+    for line in csvfile:
+        airports.append(line)
+        
+df_airports = pd.DataFrame(airports)
+df_airports 
 
-
+df = pd.read_csv(r'C:\Users\20175876\Documents\DC1 (1)\airports.csv', header=None)
+df
+df = pd.DataFrame(df[0].str.split(',',1,  expand=True))
+df[1].iloc[1].split('')
+#columns = ['0', '1','2','3','4','5','6', '7', '8', '9', '10', '11', '12', '13']
+for row in df[1]:
+    row.split(',')

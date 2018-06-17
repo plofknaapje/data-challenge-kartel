@@ -59,18 +59,14 @@ fig = gmaps.figure()
 fig.add_layer(gmaps.heatmap_layer(locations_df))
 fig
 
-airports = []
-with open(r'C:\Users\20175876\Documents\DC1 (1)\airports.csv', 'rb') as csvfile:
-    for line in csvfile:
-        airports.append(line)
-        
-df_airports = pd.DataFrame(airports)
-df_airports 
+#airport data 7184 airports, no missing longitude, latitude
+df_airports = pd.read_csv(r'C:\Users\20175876\Documents\DC1 (1)\airports.csv', header=None, sep=',')
+df_airports.columns = ['airport_id', 'name', 'city', 'country', 'iata', 'icao', 'latitude', 'longitude', 'altitude', 'timezone', 'dst', 'tz', 'type airport', 'source']
+df_airports_loc = df_airports[['longitude','latitude', 'altitude']]
 
-df = pd.read_csv(r'C:\Users\20175876\Documents\DC1 (1)\airports.csv', header=None)
-df
-df = pd.DataFrame(df[0].str.split(',',1,  expand=True))
-df[1].iloc[1].split('')
-#columns = ['0', '1','2','3','4','5','6', '7', '8', '9', '10', '11', '12', '13']
-for row in df[1]:
-    row.split(',')
+#scatter gmap
+airport_layer = gmaps.symbol_layer(df_airports_loc[['latitude', 'longitude']], fill_color='green', stroke_color='green', scale=1)
+fig.add_layer(airport_layer)
+fig
+df_airports_loc['altitude'] = df_airports_loc.loc[df_airports_loc['altitude'] != 0]
+df_airports_loc

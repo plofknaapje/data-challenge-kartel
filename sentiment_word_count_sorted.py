@@ -49,3 +49,47 @@ sorted_x = sorted(my_dict.items(), key=operator.itemgetter(1))
 twan = (sorted_x.reverse())
 print(twan)
 print(sorted_x)
+
+
+df_AA.head()
+AA_lst = []
+for i in df_AA['text']:
+    tweet = regex.sub('', i)
+    AA_lst.append(tweet)
+df_count_AA = pd.DataFrame()
+df_count_AA['text'] = 0
+df_count_AA['text'] = AA_lst
+df_count_AA.head()
+my_dict_AA = {}
+def word_count(string):
+    my_string = string.lower().split()
+    for item in my_string:
+        if item in my_dict_AA:
+            my_dict_AA[item] += 1
+        else:
+            my_dict_AA[item] = 1
+            
+
+
+
+for i in df_count_AA['text']:
+    word_count(i)
+
+print(my_dict_AA)
+import operator
+
+sorted_x_AA = sorted(my_dict_AA.items(), key=operator.itemgetter(1))
+twan_AA = (sorted_x_AA.reverse())
+print(twan_AA)
+print(sorted_x_AA)
+fin_dict = {}
+for key in my_dict.keys():
+    if my_dict[key] > 1000:
+        if key in my_dict:
+            fin_dict[key] = my_dict[key]/my_dict_AA[key]
+
+print(fin_dict)
+
+sorted_fin = sorted(fin_dict.items(), key=operator.itemgetter(1))
+
+print(sorted_fin)

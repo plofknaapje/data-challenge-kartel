@@ -126,19 +126,20 @@ class Airline:
     def makeConversations(self):
         """
         Checks all tweets for conversations
+        Complexity: O(nlog(n))
         :return: Dictionary with conversation length frequencies
         """
         # For every tweet which was found by Conv.addTweets()
-        for tweet_id in self.tweets:
+        for tweet_id in self.tweets: # o(n)
             # Only for tweets which were not replyed to, do:
-            if not tweet_id in self.reply_ids:
-                conversation = Conversation(self.name, self.id)
-                conversation.addTweetConversation(tweet_id)
+            if not tweet_id in self.reply_ids: # O(1)
+                conversation = Conversation(self.name, self.id) # O(1)
+                conversation.addTweetConversation(tweet_id) # O(log(n))
                 # Only save converations which are longer than 1 and contain interaction
                 if conversation.length > 1 and conversation.containsUser():
-                    self.conversations.append(conversation)
-        times = [len(conv) for conv in self.conversations]
-        self.conversationLengths = listToDict(times)
+                    self.conversations.append(conversation) # O(1)
+        times = [len(conv) for conv in self.conversations] # O(n)
+        self.conversationLengths = listToDict(times) # O(1)
     
     
     def airlineSentimentDeltas(self):
@@ -237,56 +238,30 @@ class Conversation:
                 self.time = tweet.time
     
     
-    def sentimentChange(self, user_id):
-        """
-        Computes the sentiment change in conversation caused by interceptions 
-        by user_id. Stores sentiment in object sentiment variable
-        :param user_id: str user_id of user trying to influence sentiment
-        """
-        before = None
-        interception = False
-        changes = []
-        for tweet in self.tweets_lst:
-            tweet = Airline.tweets[tweet]
-            # Finds first tweet after start or interception not by user
-            if tweet.user != user_id and not interception:
-                before = tweet.sentiment
-            # Checks for interception
-            elif tweet.user == user_id:
-                interception = True
-            # If intercept happened and there is a new tweet from not user,
-            # Calculate the difference in sentiment
-            elif tweet.user != user_id and interception:
-                if before != None:
-                    changes.append(tweet.sentiment-before)
-                before = tweet.sentiment
-                interception = False
-        if len(changes) > 0:
-            self.sentiment = np.mean(changes)
-        else:
-            self.sentiment = None
+    
                 
     
     def addTweetConversation(self, tweet_id, end = False):
         """
         Adds a tweet to the tweet_lst and if tweet is a reply, recursively
         adds the replied to tweet. Sets length of conversation
+        Complexity: Recursive -> log(n)
         :param tweet_id: str tweet_id of tweet to be added
         :param end: bool stops the recursion if True
         """
         
-        tweet = Airline.tweets[tweet_id]
-        if end:
-            self.tweets_lst.append(tweet_id)
-        else:
-            self.tweets_lst = [tweet_id] + self.tweets_lst
+        tweet = Airline.tweets[tweet_id] # O(1)
+        if end: # O(1)
+            self.tweets_lst.append(tweet_id) # O(1)
+        else: # O(1)
+            self.tweets_lst = [tweet_id] + self.tweets_lst # O(1)
        
-        tweet_id = tweet.reply_tweet
-        if tweet.reply_tweet in Airline.tweets.keys():
-            self.addTweetConversation(tweet_id)
-        elif tweet_id != None:
-            if Airline.getTweet(tweet_id) == True:
-                self.addTweetConversation(tweet_id)
+        tweet_id = tweet.reply_tweet # O(1)
+        if tweet.reply_tweet in Airline.tweets.keys(): # O(1)
+            self.addTweetConversation(tweet_id) # O(?)
+        elif tweet_id != None:  # O(1)
+            if Airline.getTweet(tweet_id) == True: # O(1)
+                self.addTweetConversation(tweet_id) # O(1)
         self.length = len(self)
     
     
@@ -295,6 +270,7 @@ class Conversation:
         Returns sentiment interactions in relation to airline_id
         Looks in conversation for the sequence user tweet, airline tweet, user tweet
         and reports the start sentiment, end sentiment, userid and delta of the sentiments.
+        Complexity: O(mn) n = tweets in conversation, m = length of tweet
         :param airline_id: str of id to which the conversations are made.
         :return: list with the dict and True or 'No' and False
         """
@@ -306,14 +282,14 @@ class Conversation:
         end_list = []
         delta_list = []
         
-        for tweet in self.tweets_lst:
-            tweets.append(Airline.tweets[tweet])
-            tweet = Airline.tweets[tweet]
-            user = tweet.user
-            if not user in users and not user == airline_id:
-                users.append(user)
-            if tweet.sentiment == None:
-                tweet.sentimentScore()
+        for tweet in self.tweets_lst: # O(n)
+            tweets.append(Airline.tweets[tweet]) # O(1)
+            tweet = Airline.tweets[tweet] # O(1)
+            user = tweet.user # O(1)
+            if not user in users and not user == airline_id: # O(1)
+                users.append(user) # O(1)
+            if tweet.sentiment == None: # O(1)
+                tweet.sentimentScore() # O(m)
                 
         for user in users:
             start = None
@@ -343,8 +319,43 @@ class Conversation:
             return ['No', False]
 
 
+    def sentimentChange(self, user_id):
+        """
+        Computes the sentiment change in conversation caused by interceptions 
+        by user_id. Stores sentiment in object sentiment variable
+        Complexity: O(mn)
+        :param user_id: str user_id of user trying to influence sentiment
+        """
+        deltas = self.sentimentDeltas(user_id) # O(mn)
+        if deltas[1]:
+            self.sentiment = np.mean(deltas[0]['delta'])
+        else:
+            self.sentiment = None
+        """
+        if not self.sentiment == None: 
+            for tweet in self.tweets_lst:
+                tweet = Airline.tweets[tweet]
+                # Finds first tweet after start or interception not by user
+                if tweet.user != user_id and not interception:
+                    before = tweet.sentiment
+                # Checks for interception
+                elif tweet.user == user_id:
+                    interception = True
+                # If intercept happened and there is a new tweet from not user,
+                # Calculate the difference in sentiment
+                elif tweet.user != user_id and interception:
+                    if before != None:
+                        changes.append(tweet.sentiment-before)
+                    before = tweet.sentiment
+                    interception = False
+            if len(changes) > 0:
+                self.sentiment = np.mean(changes)
+        """
+    
+
     def __len__(self):
         """
+        Complexity: O(n)
         :return: int length of tweets_lst
         """
         if True:
@@ -370,6 +381,7 @@ class Tweet:
     def __init__(self, tweet_id, user, text, time, lang, reply_user = '', reply_tweet = ''):
         """
         Creates new Tweet object and its variables
+        Complexity: O(1)
         :param tweet_id: str of the tweet id
         :param user: str of user id
         :param text: str of tweet text
@@ -390,6 +402,7 @@ class Tweet:
     def processTweet(self):
         """
         Cleans the text of the tweet
+        Complexity: O(n)
         :return: str of cleaned tweet text
         """
         # process the tweets
@@ -411,10 +424,11 @@ class Tweet:
     def sentimentScore(self):
         """
         Scores the sentiment of a tweet with textblob
+        Complexity: O(n)
         :return: float of sentiment of tweet between -1 and 1
         """
-        text = self.processTweet()
-        blob = analyser.polarity_scores(text)
+        text = self.processTweet() # O(n)
+        blob = analyser.polarity_scores(text) # O(n)
         self.sentiment = blob['compound']
    
     def __str__(self):
@@ -440,7 +454,9 @@ def listToDict(lst):
 if __name__ == "__main__":
     # execute only if run as a script
     airlines = {}
-    for airline in [airlines_id[5]]:
+    airlineindex = 3
+    airlineid = airlines_id[airlineindex]
+    for airline in [airlines_id[airlineindex]]:
         airlines[airline] = Airline(airlines_dict[airline], airline)
         Airline.classify()
         df = airlines[airline].airlineSentimentDeltas() 
@@ -450,17 +466,17 @@ if __name__ == "__main__":
         print(airline.name)
         print(airline.conversationLengths)
     
-    conv = airlines['26223583'].conversations[0]
-    print(conv.sentimentDeltas(airlines_id[5]))
     if False:
         datetimeLst = {'hour':[], 'length':[], 'date':[]}
+        conversationList = airlines[airlines_id[airlineindex]].conversations
+        user_name = airlines_dict[airlineid]
         for conv in conversationList:
             dt = conv.time
             if user_name == 'AmericanAir':
                 dt = dt - timedelta(hours=6)
             datetimeLst['hour'].append(dt.hour)
             datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
-            datetimeLst['length'].append(conv.length)
+            datetimeLst['length'].append(len(conv))
     
         df = pd.DataFrame(datetimeLst)
         amount_results = df.groupby(['date', 'hour']).size().reset_index().rename(columns={0:'count'})
@@ -477,19 +493,20 @@ if __name__ == "__main__":
         time_results = time_results.pivot('hour', 'day', 'length')
         
         
-        fig, ax = plt.subplots(figsize=(10,5))
+        fig, ax = plt.subplots(figsize=(22,18))
         sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax, annot=time_results)
-        # ax.invert_yaxis()
-        plt.xlabel("day of the week")
+        ax.invert_yaxis()
+        plt.xlabel("Day of the week")
         plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-        plt.ylabel("hour of the day")
+        plt.ylabel("Hour of the day")
         plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
                 13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
                ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
                 "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
                 "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
                 "21:00", "22:00", "23:00"], rotation=0)
-        plt.title('Median amount of conversation with {}'.format(user_name))
+        plt.suptitle('Median amount of conversation with {}'.format(user_name))
+        plt.title('Number indicates median conversation length of day-hour combination')
         plt.plot()
         plt.show()
     
@@ -504,6 +521,8 @@ if __name__ == "__main__":
         
     if False:
         datetimeLst = {'hour':[], 'sentiment':[], 'date':[]}
+        conversationList = airlines[airlines_id[airlineindex]].conversations
+        user_name = airlines_dict[airlineid]
         for conv in conversationList:
             dt = conv.time
             if user_name == 'AmericanAir':
@@ -512,8 +531,8 @@ if __name__ == "__main__":
             datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
             lst = []
             for tweet in conv.tweets_lst:
-                tweet = Conversation.tweets[tweet]
-                if tweet.user != user_id:
+                tweet = Airline.tweets[tweet]
+                if tweet.user != airlineid:
                     lst.append(tweet.sentiment)
             sentiment = np.mean(lst)
             datetimeLst['sentiment'].append(sentiment)
@@ -528,7 +547,7 @@ if __name__ == "__main__":
         
         
         #amount_results[3][10] = amount_results[3].median()
-        fig, ax = plt.subplots(figsize=(10,5))
+        fig, ax = plt.subplots(figsize=(22, 18))
         sns.heatmap(amount_results, cmap='Blues', vmin=0)
         
         ax.invert_yaxis()
@@ -541,32 +560,51 @@ if __name__ == "__main__":
                 "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
                 "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
                 "21:00", "22:00", "23:00"], rotation=0)
-        plt.title('Mean sentiment of users in conversation with {}'.format(user_name))
+        plt.suptitle('Mean sentiment of users in conversation with {}'.format(user_name))
         plt.plot()
         plt.show()
     # times = [len(conv) for conv in conversationList]
     
     if False:
+        SMALL_SIZE = 14*2
+        MEDIUM_SIZE = 16*2
+        BIGGER_SIZE = 20*2
+    
+        plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+        plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+        plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+        plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+        plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+        
+        
         datetimeLst = {'sentiment':[], 'length':[]}
-        bin = [-1, -0.75, -0.25, -0.0001, 0.0001, 0.25, 0.75, 1]
+        bin = [-2, -0.66, -0.33, -0.0001, 0.0001, 0.33, 0.66, 2]
         labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
-        conversationList = airlines['22536055']
+        conversationList = airlines[airlines_id[airlineindex]].conversations
         for conv in conversationList:
-            tweet = conv.tweets_lst[0]
-            tweet = Conversation.tweets[tweet]
+            conv.sentimentChange(airlineid)
             datetimeLst['sentiment'].append(conv.sentiment)
             datetimeLst['length'].append(conv.length)
         df = pd.DataFrame(datetimeLst)
         binned = pd.cut(df['sentiment'], bin, labels=labels)
         df['sentiment'] = binned
-        df = df.groupby('length')['sentiment'].value_counts().unstack().fillna(0)
         labels.reverse()
+        df = df.groupby('length')['sentiment'].value_counts().unstack().fillna(0)
         df = df.loc[:,labels]
         df = df.loc[range(3,11), :]
         df["sum"] = df.sum(axis=1)
         df_new = df.loc[:,labels].div(df["sum"], axis=0)
-        df_new.plot.bar(stacked=True, figsize=(10,7),xlim=list([2,10]), cmap='coolwarm')
-        plt.title('Relative distribution of sentiment for length')
+        df_new.plot.bar(stacked=True, figsize=(20,20),xlim=list([2,10]), cmap='coolwarm')
+        plt.suptitle('Relative distribution of average sentiment change per interception per length')
+        legend_labels = ['Very Negative < -0.66', 'Negative < -0.33', 
+                           'Slightly Negative < 0', 'Neutral = 0', 
+                           'Slightly Positive > 0', 'Positive > 0.33', 
+                           'Very Positive > 0.66']
+        legend_labels.reverse()
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), 
+                   labels=legend_labels)
         plt.plot()
         plt.show()
 

@@ -14,6 +14,19 @@ import sqlite3
 import numpy as np
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+## Text
+SMALL_SIZE = 14*2
+MEDIUM_SIZE = 16*2
+BIGGER_SIZE = 20*2
+
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
 database = sqlite3.connect('data/mydb.sqlite3')
 
 airlines_id = ["56377143", "106062176", "18332190", "22536055", "124476322", "26223583", "2182373406", "38676903",
@@ -55,7 +68,7 @@ class Airline:
         # Checks all Tweet objects and builds them into conversations
         self.makeConversations()
         # Executes sentiment analysis on all Conversation objects
-        #self.sentimentChanges()
+        self.airlineSentimentDeltas()
         
 
     def addTweets(self, start_date = '2016-02-01 00:00:00', 
@@ -159,6 +172,29 @@ class Airline:
                     dict[i] = dict[i] + valdict[i]
         return pd.DataFrame(dict)
     
+    
+    def replyRate(self):
+        """
+        
+        
+        """
+        airline_reply_query =  """SELECT in_reply_to_tweet_id FROM tweets
+        WHERE in_reply_to_tweet_id NOT NULL AND user_id == {};""".format(self.id)
+        cursor = database.cursor()
+        cursor.execute(airline_reply_query)
+        result = cursor.fetchall()
+        airline_reply = set([i[0] for i in result if i != 'None'])
+        tweets = 0
+        replies = 0
+        for tweet in self.tweets:
+            tweet = Airline.tweets[tweet]
+            text = tweet.text
+            if '@' + self.name in text:
+                tweets = tweets + 1
+                if tweet.tweet_id in airline_reply:
+                    replies = replies + 1
+        return [replies, tweets, replies/tweets]
+        
     
     def classify():
         """
@@ -451,6 +487,127 @@ def listToDict(lst):
     return dicti
 
 
+def unrespondedTweets(airline):
+    name = airline.name
+    id = airline.id
+    airline_reply_query =  """SELECT in_reply_to_tweet_id FROM tweets
+    WHERE in_reply_to_tweet_id NOT NULL AND user_id == {};""".format(id)
+    cursor = database.cursor()
+    cursor.execute(airline_reply_query)
+    result = cursor.fetchall()
+    airline_reply = set([i[0] for i in result if i != 'None'])
+    
+    response = {'hour':[], 'reply':[], 'date':[]}
+    
+    for tweet in airline.tweets:
+        tweet = Airline.tweets[tweet]
+        if tweet.user != id and not tweet.tweet_id in airline_reply:
+            dt = tweet.time
+            if name == 'AmericanAir':
+                dt = dt - timedelta(hours=6)
+            response['hour'].append(dt.hour)
+            response['date'].append(dt.strftime('%Y-%m-%d'))
+            response['reply'].append(1)
+    
+    df = pd.DataFrame(response)
+    amount_results = df.groupby(['date', 'hour']).size().reset_index().rename(columns={0:'count'})
+    amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
+    amount_results['day'] = amount_results['date'].dt.weekday
+    amount_results.drop(['date'], axis=1)
+    amount_results = amount_results.groupby(['day', 'hour']).median().reset_index()
+    amount_results = amount_results.pivot('hour', 'day', 'count')
+    
+    fig, ax = plt.subplots(figsize=(22,16))
+    sns.heatmap(amount_results, cmap='Blues', ax=ax, annot=amount_results,
+                cbar_kws={'label': 'Amount of unanswered tweets'}, fmt='g')
+    ax.invert_yaxis()
+    plt.xlabel("Day of the week")
+    plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+    plt.ylabel("Hour of the day")
+    plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
+            13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
+           ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
+            "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
+            "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
+            "21:00", "22:00", "23:00"], rotation=0)
+    plt.plot()
+    plt.show()
+
+
+def lengthAmountGraph(airline_obj):
+    datetimeLst = {'hour':[], 'length':[], 'date':[]}
+    conversationList = airline_obj.conversations
+    user_name = airline_obj.name
+    for conv in conversationList:
+        dt = conv.time
+        if user_name == 'AmericanAir':
+            dt = dt - timedelta(hours=6)
+        datetimeLst['hour'].append(dt.hour)
+        datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
+        datetimeLst['length'].append(len(conv))
+
+    df = pd.DataFrame(datetimeLst)
+    amount_results = df.groupby(['date', 'hour']).size().reset_index().rename(columns={0:'count'})
+    time_results = df.groupby(['date', 'hour']).median().reset_index().rename(columns={0:'length'})
+    amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
+    time_results['date'] = pd.to_datetime(time_results['date'], format='%Y-%m-%d')
+    amount_results['day'] = amount_results['date'].dt.weekday
+    time_results['day'] = amount_results['date'].dt.weekday
+    amount_results.drop(['date'], axis=1)
+    time_results.drop(['date'], axis=1)
+    amount_results = amount_results.groupby(['day', 'hour']).median().reset_index()
+    time_results = time_results.groupby(['day', 'hour']).median().reset_index()
+    amount_results = amount_results.pivot('hour', 'day', 'count')
+    time_results = time_results.pivot('hour', 'day', 'length')
+    
+    
+    fig, ax = plt.subplots(figsize=(22,16))
+    sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax, 
+                annot=amount_results, cbar_kws={'label': 'Median amount of conversations'})
+    ax.invert_yaxis()
+    plt.xlabel("Day of the week")
+    plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+    plt.ylabel("Hour of the day")
+    plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
+            13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
+           ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
+            "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
+            "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
+            "21:00", "22:00", "23:00"], rotation=0)
+    plt.plot()
+    plt.show()
+
+
+def lengthSentiment(airline):
+    datetimeLst = {'sentiment':[], 'length':[]}
+    bin = [-2, -0.66, -0.33, -0.0001, 0.0001, 0.33, 0.66, 2]
+    labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
+    conversationList = airline.conversations
+    for conv in conversationList:
+        conv.sentimentChange(airline.name)
+        datetimeLst['sentiment'].append(conv.sentiment)
+        datetimeLst['length'].append(conv.length)
+    df = pd.DataFrame(datetimeLst)
+    binned = pd.cut(df['sentiment'], bin, labels=labels)
+    df['sentiment'] = binned
+    labels.reverse()
+    df = df.groupby('length')['sentiment'].value_counts().unstack().fillna(0)
+    df = df.loc[:,labels]
+    df = df.loc[range(3,11), :]
+    df["sum"] = df.sum(axis=1)
+    df_new = df.loc[:,labels].div(df["sum"], axis=0)
+    df_new.plot.bar(stacked=True, figsize=(20,15),xlim=list([2,10]), cmap='RdYlBu')        
+    legend_labels = ['Very Negative < -0.66', 'Negative < -0.33', 
+                       'Slightly Negative < 0', 'Neutral = 0', 
+                       'Slightly Positive > 0', 'Positive > 0.33', 
+                       'Very Positive > 0.66']
+    legend_labels.reverse()
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), 
+               labels=legend_labels)
+    plt.xlabel("Conversation length")
+    plt.plot()
+    plt.show()
+
 if __name__ == "__main__":
     # execute only if run as a script
     airlines = {}
@@ -466,59 +623,12 @@ if __name__ == "__main__":
         print(airline.name)
         print(airline.conversationLengths)
     
-    if False:
-        datetimeLst = {'hour':[], 'length':[], 'date':[]}
-        conversationList = airlines[airlines_id[airlineindex]].conversations
-        user_name = airlines_dict[airlineid]
-        for conv in conversationList:
-            dt = conv.time
-            if user_name == 'AmericanAir':
-                dt = dt - timedelta(hours=6)
-            datetimeLst['hour'].append(dt.hour)
-            datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
-            datetimeLst['length'].append(len(conv))
+    lengthAmountGraph(airlines[airlines_id[airlineindex]])
     
-        df = pd.DataFrame(datetimeLst)
-        amount_results = df.groupby(['date', 'hour']).size().reset_index().rename(columns={0:'count'})
-        time_results = df.groupby(['date', 'hour']).median().reset_index().rename(columns={0:'length'})
-        amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
-        time_results['date'] = pd.to_datetime(time_results['date'], format='%Y-%m-%d')
-        amount_results['day'] = amount_results['date'].dt.weekday
-        time_results['day'] = amount_results['date'].dt.weekday
-        amount_results.drop(['date'], axis=1)
-        time_results.drop(['date'], axis=1)
-        amount_results = amount_results.groupby(['day', 'hour']).median().reset_index()
-        time_results = time_results.groupby(['day', 'hour']).median().reset_index()
-        amount_results = amount_results.pivot('hour', 'day', 'count')
-        time_results = time_results.pivot('hour', 'day', 'length')
-        
-        
-        fig, ax = plt.subplots(figsize=(22,18))
-        sns.heatmap(amount_results, cmap='Blues', vmin=0, vmax=48, ax=ax, annot=time_results)
-        ax.invert_yaxis()
-        plt.xlabel("Day of the week")
-        plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-        plt.ylabel("Hour of the day")
-        plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
-                13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
-               ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
-                "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
-                "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
-                "21:00", "22:00", "23:00"], rotation=0)
-        plt.suptitle('Median amount of conversation with {}'.format(user_name))
-        plt.title('Number indicates median conversation length of day-hour combination')
-        plt.plot()
-        plt.show()
+    unrespondedTweets(airlines[airlines_id[airlineindex]])
     
-        for tweet in conversationList[1].tweets_lst:
-            tweet = Conversation.tweets[tweet]
-            print(tweet.user, tweet.sentiment)
-        conversationList[2].sentimentChange()
-        print(conversationList[2].sentiment)
+    lengthSentiment(airlines[airlines_id[airlineindex]])
     
-        tweet = list(Conversation.tweets.keys())[0]
-        print(Conversation.tweets[tweet].sentiment   ) 
-        
     if False:
         datetimeLst = {'hour':[], 'sentiment':[], 'date':[]}
         conversationList = airlines[airlines_id[airlineindex]].conversations
@@ -560,55 +670,11 @@ if __name__ == "__main__":
                 "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
                 "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
                 "21:00", "22:00", "23:00"], rotation=0)
-        plt.suptitle('Mean sentiment of users in conversation with {}'.format(user_name))
         plt.plot()
         plt.show()
     # times = [len(conv) for conv in conversationList]
     
     if False:
-        SMALL_SIZE = 14*2
-        MEDIUM_SIZE = 16*2
-        BIGGER_SIZE = 20*2
-    
-        plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-        plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-        plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-        plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-        plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-        plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-        plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
         
-        
-        datetimeLst = {'sentiment':[], 'length':[]}
-        bin = [-2, -0.66, -0.33, -0.0001, 0.0001, 0.33, 0.66, 2]
-        labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
-        conversationList = airlines[airlines_id[airlineindex]].conversations
-        for conv in conversationList:
-            conv.sentimentChange(airlineid)
-            datetimeLst['sentiment'].append(conv.sentiment)
-            datetimeLst['length'].append(conv.length)
-        df = pd.DataFrame(datetimeLst)
-        binned = pd.cut(df['sentiment'], bin, labels=labels)
-        df['sentiment'] = binned
-        labels.reverse()
-        df = df.groupby('length')['sentiment'].value_counts().unstack().fillna(0)
-        df = df.loc[:,labels]
-        df = df.loc[range(3,11), :]
-        df["sum"] = df.sum(axis=1)
-        df_new = df.loc[:,labels].div(df["sum"], axis=0)
-        df_new.plot.bar(stacked=True, figsize=(20,20),xlim=list([2,10]), cmap='coolwarm')
-        plt.suptitle('Relative distribution of average sentiment change per interception per length')
-        legend_labels = ['Very Negative < -0.66', 'Negative < -0.33', 
-                           'Slightly Negative < 0', 'Neutral = 0', 
-                           'Slightly Positive > 0', 'Positive > 0.33', 
-                           'Very Positive > 0.66']
-        legend_labels.reverse()
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), 
-                   labels=legend_labels)
-        plt.plot()
-        plt.show()
-
+    print(airlines[airlines_id[airlineindex]].replyRate())
     
-lst = []
-lst.append(None)
-print(lst)

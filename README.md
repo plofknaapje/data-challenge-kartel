@@ -13,8 +13,7 @@ In order to run this code with new zipped json files, do the following:
 2. Open this folder with Spyder or alike
 2. Run access.py here. This creates the sqlite database with all the tweets in the data folder.
 3. Run the file which contains the functions you want:
-    a. Conversations.py for sentiment analysis, heatmaps and sentiment distribution
-    b. 
+    a. Conversations.py for sentiment analysis, heatmaps and sentiment distribution 
     
 # access.py
 

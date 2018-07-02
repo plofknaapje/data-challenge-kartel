@@ -21,7 +21,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns; sns.set()
 import numpy as np
-
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+analyser = SentimentIntensityAnalyzer()
 
 
 database = access.db
@@ -314,10 +315,10 @@ for airline in airlines_names:
     
     tweet_ids_lst = []
     tweet_text_lst = []
-    
+   
     tweet_sentiment_score = []
     counter = 0
-    
+   
     counterair += 1
     for key in Conversation.tweets.keys():
         if Conversation.tweets[key].user != user_id:
@@ -326,15 +327,15 @@ for airline in airlines_names:
             proctweet = processTweet(Conversation.tweets[key].text)
             tweet_text_lst.append(proctweet)
        
-            blob = TextBlob(proctweet)
+            snt = analyser.polarity_scores(proctweet)
            
-            tweet_sentiment_score.append(blob.sentiment.polarity)
-            print(counter)
+            tweet_sentiment_score.append(snt['compound'])
+            print('sentiment: ', counter)
             counter += 1
     dfprop[airline] = tweet_sentiment_score
     dfairlines = pd.concat([dfairlines, dfprop], axis=1)
-
-dfairlines.head()
+ 
+tweet_sentiment_score
 dfairlines.to_csv('sentiment_airlines.csv')
 dfairlines
 

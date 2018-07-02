@@ -12,22 +12,18 @@ Created on Tue May 22 15:47:09 2018
 @author: 20166843
 """
 import access
-from textblob import TextBlob
 import re
-import pickle
 from datetime import datetime, timedelta
 import seaborn as sns; sns.set()
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns; sns.set()
-import numpy as np
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 analyser = SentimentIntensityAnalyzer()
-
-
 database = access.db
-conversationList = []
 
+
+conversationList = []
 airlines_id = ["56377143", "106062176", "18332190", "22536055", "124476322", "26223583", "2182373406", "38676903",
                "1542862735", "253340062", "218730857", "45621423", "20626359"]
 airlines_names = ["KLM", "AirFrance", "British_Airways", "AmericanAir", "Lufthansa", "AirBerlin", "AirBerlin assist",
@@ -36,10 +32,14 @@ airlines_other_id = ["56377143", "106062176", "18332190", "124476322", "26223583
                      "1542862735", "253340062", "218730857", "45621423", "20626359"]
 airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "AirBerlin", "AirBerlin assist", "easyJet",
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
+''' 
+This is the conversation code from conversatoins.py and comments on the code can
+ be found there. The code is looped for every airline to create a CSV file of 
+ (labeled)sentiment scores for every airline.
+'''
 counterair = 0
 dfairlines = pd.DataFrame()
 for airline in airlines_names:
-    dfprop = pd.DataFrame()
 # Default for AA
     user_id = airlines_id[counterair]
     user_name = airlines_names[counterair]
@@ -243,7 +243,8 @@ for airline in airlines_names:
         ax.invert_yaxis()
         ax
         plt.xlabel("day of the week")
-        plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+        plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", 
+                   "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
         plt.ylabel("hour of the day")
         plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
                 13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
@@ -254,15 +255,9 @@ for airline in airlines_names:
         plt.title('Average amount of conversation with {}'.format(user_name))
         plt.plot()
         # times = [len(conv) for conv in conversationList]
+
+    # This is where the copy of coversations.py ends.
         
-        
-        '''
-        dicti = listToDict(times)
-        print(dicti)
-        '''
-    
-    
-     
     def processTweet(tweet):
         # process the tweets
      
@@ -279,70 +274,38 @@ for airline in airlines_names:
         #trim
         return tweet
     
-    """tweet_ids_lst = []
-    tweet_text_lst = []
-    tweet_sentiment_score = []
-    counter = 0
-    for key in Conversation.tweets.keys():
-        if Conversation.tweets[key].user != user_id
-        tweet_ids_lst.append(key)
-    
-        proctweet = processTweet(Conversation.tweets[key].text)
-        tweet_text_lst.append(proctweet)
-    
-        blob = TextBlob(proctweet)
-        tweet_sentiment_score.append(blob.sentiment.polarity)
-        print(counter)
-        counter += 1
-        """
-    
-    
-    """for i in range(len(tweet_ids_lst)):
-        Conversation.tweets[tweet_ids_lst[i]].sentiment = tweet_sentiment_score[i]
-    for conversation in conversationList:
-        for tweet in conversation.tweets_lst:
-            Tweet = Conversation.tweets[tweet].text
-            conv_sent = Conversation.tweets[tweet].text
-            print(Tweet, conv_sent)
-        print('!END OF CONVERSATION!')"""
-    
-    
-    """with open('Conversations_VirginAtlantic.pkl', 'wb') as f:
-        pickle.dump(conversationList, f)"""
-    
-   
-    
-    
+    # Add all text of tweets to a certain airline and its tweet_id to seperate
+    # lists and create a dataframe which will store the sentiment scores for this airline.
+    df_temp_sentiment = pd.DataFrame()
     tweet_ids_lst = []
     tweet_text_lst = []
-   
     tweet_sentiment_score = []
     counter = 0
-   
     counterair += 1
     for key in Conversation.tweets.keys():
         if Conversation.tweets[key].user != user_id:
             tweet_ids_lst.append(key)
-       
+            # Pre-process the text.
             proctweet = processTweet(Conversation.tweets[key].text)
             tweet_text_lst.append(proctweet)
-       
+            # Analyse the text
             snt = analyser.polarity_scores(proctweet)
-           
+            # Save the compound sentiment score to a list.
             tweet_sentiment_score.append(snt['compound'])
             print('sentiment: ', counter)
             counter += 1
-    dfprop[airline] = tweet_sentiment_score
-    dfairlines = pd.concat([dfairlines, dfprop], axis=1)
- 
-tweet_sentiment_score
+    df_temp_sentiment[airline] = tweet_sentiment_score
+    # Add the sentiment scores of this airline to the dataframe.
+    dfairlines = pd.concat([dfairlines, df_temp_sentiment], axis=1)
+# After looping through all airlines the scores are saved in a CSV.
 dfairlines.to_csv('sentiment_airlines.csv')
-dfairlines
 
 
+# A seccond CSV file is saved where the sentiment scores are labelled according to 'labels'.
 df_sentiment = pd.DataFrame()
 bin = [-1, -0.75, -0.25, -0.000001, 0.000001, 0.25, 0.75, 1]
-labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
+labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 
+          'Slightly positive', 'Positive', 'Very positive']
 df12 = pd.read_csv('sentiment_airlines.csv')
 for airline in airlines_names:
     category = pd.cut(df12[airline], bin, labels = labels)

@@ -4,19 +4,15 @@ Created on Tue May 22 15:47:09 2018
 
 @author: 20171877
 """
-import access
-from datetime import datetime, timedelta
 import seaborn as sns
-
-sns.set()
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+sns.set()
 
 
-df3 = pd.read_csv('labeled_sentiment.csv', low_memory=False)
-df1 = df3.apply(pd.value_counts)    
-print(df1)
+df_sentiment_labeled = pd.read_csv('labeled_sentiment.csv', low_memory=False)
+df_labels_counted = df_sentiment_labeled.apply(pd.value_counts)    
+print(df_labels_counted)
 #Gather the value counts with the above code.
 
 """
@@ -27,7 +23,6 @@ to do it at the time
 
 Below the code produces a stackedbar plot with the sentiment-
 distribution for all the airlines.
-
 """
 
 fig, ax = plt.subplots(figsize=(20,10))

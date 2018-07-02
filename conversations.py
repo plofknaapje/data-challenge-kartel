@@ -609,16 +609,6 @@ def lengthSentiment(airline):
     plt.show()
 
 
-def locationStuff(airline):
-    name = airline.name
-    id = airline.id
-    
-    for tweet in airline.tweets:
-        tweet = Airline.tweets[tweet]
-        if tweet.longitude != None and tweet.latitute != None:
-            do stuff
-
-
 if __name__ == "__main__":
     # execute only if run as a script
     airlines = {}

@@ -19,3 +19,9 @@ In order to run this code with new zipped json files, do the following:
 
 
 # conversations.py
+
+# sentiment_airlines.py
+This code executes sentiment analysis with the vaderSentiment module.
+It saves two .CSV files
+1. sentiment_airlines.csv with the compound sentiment score for every airline.
+2. Labeled_sentiment.csv with the sentiment scores labeled by text representative of the sentiment score.

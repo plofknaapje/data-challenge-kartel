@@ -34,16 +34,14 @@ df3 = pd.read_csv('labeled_sentiment.csv', low_memory=False)
 
 
     
-#for airline in df3:
-#    df3[airline].value_counts()
+for airline in df3:
+    df3[airline].value_counts()
 #    df['KLM'].value_counts()
 
-#df1 = df3.apply(pd.value_counts)    
-#df1
-#df['KLM']
-#df['test']
-#df1[['AmericanAir','British_Airways','RyanAir','KLM','easyJet']]
-#totals = [a, b, c, d, e, f, g for a, b, c, d, e, f, g in zip(df[])]
+df1 = df3.apply(pd.value_counts)    
+print(df1)
+#Gather the value counts with the above code.
+
 """
 We counted all the words with the above code, and then we
 put all the counts per sentiment into the code by hand.

@@ -25,3 +25,20 @@ This code executes sentiment analysis with the vaderSentiment module.
 It saves two .CSV files
 1. sentiment_airlines.csv with the compound sentiment score for every airline.
 2. Labeled_sentiment.csv with the sentiment scores labeled by text representative of the sentiment score.
+
+# Sentiment_distribution_plot
+This code counts the number of (slightly/very)positive/(slightly/very)negative/neutral tweets per airlines.
+After this the numbers are put in a stacked bar chart (by hand).
+This creates a nice overview of the distribution of the sentiment.
+
+# Sentiment lexicon
+This code creates lexicons of words which appear in positive/negative tweets.
+This is done by using dictionaries and with keys as words (in tweets) and values as the number of time a certain word appears.
+
+
+
+
+
+
+
+

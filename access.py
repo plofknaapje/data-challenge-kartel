@@ -11,8 +11,7 @@ files = "airlines_complete"
 test_file = "airlines_complete/airlines-1464602228450.json"
 
 db = sqlite3.connect('data/mydb.sqlite3')
-db1 = sqlite3.connect('data/myd.sqlite3')
-cursor = db1.cursor()
+cursor = db.cursor()
 
 try:
     cursor.execute('''
@@ -104,11 +103,12 @@ def build_database(db, directory = files):
     :return: Success if succesful
     """
     i = 1
-    for file in file_list(directory): # O(n)
+    files = file_list(directory)
+    for file in files: # O(n)
         db_upload(file, db) # O(m)
-        print(350 - i)
+        print(len(files) - i)
         i = i + 1
     return 'Success'
 
 if __name__ == "__main__":
-    build_database(db1)
+    build_database(db)

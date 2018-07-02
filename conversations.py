@@ -488,6 +488,11 @@ def listToDict(lst):
 
 
 def unrespondedTweets(airline):
+    """
+    Prints a heatmap of tweets without response per hour of the week for the airline.
+    
+    :param airline: Airline object   
+    """
     name = airline.name
     id = airline.id
     airline_reply_query =  """SELECT in_reply_to_tweet_id FROM tweets
@@ -535,6 +540,12 @@ def unrespondedTweets(airline):
 
 
 def lengthAmountGraph(airline_obj):
+    """
+    Prints a heatmap of median amount of conversations per hour of the week 
+    for the airline.
+    
+    :param airline_obj: Airline object   
+    """
     datetimeLst = {'hour':[], 'length':[], 'date':[]}
     conversationList = airline_obj.conversations
     user_name = airline_obj.name
@@ -579,6 +590,12 @@ def lengthAmountGraph(airline_obj):
 
 
 def lengthSentiment(airline):
+    """
+    Prints a stacked barchart with the distribution of median sentiment change 
+    in a conversation in relation to conversation length.
+    
+    :param airline: Airline object   
+    """
     datetimeLst = {'sentiment':[], 'length':[]}
     bin = [-2, -0.66, -0.33, -0.0001, 0.0001, 0.33, 0.66, 2]
     labels = ['Very negative', 'Negative', 'Slightly negative', 'Neutral', 'Slightly positive', 'Positive', 'Very positive']
@@ -628,54 +645,4 @@ if __name__ == "__main__":
     
     unrespondedTweets(airlines[airlines_id[airlineindex]])
     
-    lengthSentiment(airlines[airlines_id[airlineindex]])
-    
-    if False:
-        datetimeLst = {'hour':[], 'sentiment':[], 'date':[]}
-        conversationList = airlines[airlines_id[airlineindex]].conversations
-        user_name = airlines_dict[airlineid]
-        for conv in conversationList:
-            dt = conv.time
-            if user_name == 'AmericanAir':
-                dt = dt - timedelta(hours=6)
-            datetimeLst['hour'].append(dt.hour)
-            datetimeLst['date'].append(dt.strftime('%Y-%m-%d'))
-            lst = []
-            for tweet in conv.tweets_lst:
-                tweet = Airline.tweets[tweet]
-                if tweet.user != airlineid:
-                    lst.append(tweet.sentiment)
-            sentiment = np.mean(lst)
-            datetimeLst['sentiment'].append(sentiment)
-    
-        df = pd.DataFrame(datetimeLst)
-        amount_results = df.groupby(['date', 'hour']).mean().reset_index().rename(columns={0:'sentiment'})
-        amount_results['date'] = pd.to_datetime(amount_results['date'],format='%Y-%m-%d')
-        amount_results['day'] = amount_results['date'].dt.weekday
-        amount_results.drop(['date'], axis=1)
-        amount_results = amount_results.groupby(['day', 'hour']).mean().reset_index()
-        amount_results = amount_results.pivot('hour', 'day', 'sentiment')
-        
-        
-        #amount_results[3][10] = amount_results[3].median()
-        fig, ax = plt.subplots(figsize=(22, 18))
-        sns.heatmap(amount_results, cmap='Blues', vmin=0)
-        
-        ax.invert_yaxis()
-        plt.xlabel("day of the week")
-        plt.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-        plt.ylabel("hour of the day")
-        plt.yticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5,
-                13.5, 14.5, 15.5, 16.5, 17.5, 18.5, 19.5, 20.5, 21.5, 22.5, 23.5],
-               ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
-                "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00",
-                "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
-                "21:00", "22:00", "23:00"], rotation=0)
-        plt.plot()
-        plt.show()
-    # times = [len(conv) for conv in conversationList]
-    
-    if False:
-        
-    print(airlines[airlines_id[airlineindex]].replyRate())
-    
+    lengthSentiment(airlines[airlines_id[airlineindex]])    

@@ -38,7 +38,7 @@ This is done by using dictionaries and with keys as words (in tweets) and values
 # volume.py
 This code creates 2 heatmaps: 1 for incoming volume and 1 for outgoing volume (sorted by date)
 
-# sentiment_heatmap.py
+# location_sentiment.py
 This code makes a gmap from the longitude, latitude from the incoming volume of American Airlines. 
 The heat on the gmap stands for the sentiment with the greener the higher the sentiment.
 

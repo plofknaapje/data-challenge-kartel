@@ -20,6 +20,7 @@ In order to run this code with new zipped json files, do the following:
 
 # conversations.py
 
+
 # sentiment_airlines.py
 This code executes sentiment analysis with the vaderSentiment module.
 It saves two .CSV files
@@ -32,8 +33,9 @@ After this the numbers are put in a stacked bar chart (by hand).
 This creates a nice overview of the distribution of the sentiment.
 
 # Sentiment_Lexicon.py
-This code creates lexicons of words which appear in positive/negative tweets.
-This is done by using dictionaries and with keys as words (in tweets) and values as the number of time a certain word appears.
+This code creates lexicons of words which appear in positive and negative tweets.
+This is done by using dictionaries  with keys as words (in tweets) and values as the number of time a certain word appears in the negative or positive tweets.
+The tweets that are analyzed are incoming tweets from American Airlines.
 
 # volume.py
 This code creates 2 heatmaps: 1 for incoming volume and 1 for outgoing volume (sorted by date)
@@ -42,6 +44,9 @@ This code creates 2 heatmaps: 1 for incoming volume and 1 for outgoing volume (s
 This code makes a gmap from the longitude, latitude from the incoming volume of American Airlines. 
 The heat on the gmap stands for the sentiment with the greener the higher the sentiment.
 
-
+#Sentiment_Statistical_Test.R
+This code conducts a ones-sided one-sample student t-test, to change whether there is a significant increase 
+of sentiment on Twitter users after intervention by American Airlines. Note: The second row should be runned 
+in conversations.py to create the csv file to be used in R.
 
 

@@ -6,11 +6,9 @@ Created on Wed May 30 10:02:24 2018
 """
 import gmaps
 import gmaps.datasets
-import numpy as np
 import sqlite3
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import re
  
 database = sqlite3.connect('data/myd.sqlite3')
 
@@ -39,10 +37,10 @@ def get_coordinates(user_name, airlines_id, date_start= "2016-03-01 00:00:00", d
     :param airlines_id: String of ID of twitter user
     :param date_start: Datetime string in YYYY-MM-DD HH:MM:SS format
     :param date_end: Datetime string in YYYY-MM-DD HH:MM:SS format
-    :return: Returns dataframe which contains the longitude and latitude of the incoming volume of a selected user
+    :return: Returns dataframe which contains the longitude, latitude and text of the incoming volume of a selected user
     '''
     query = """
-        SELECT latitude, longitude
+        SELECT text, latitude, longitude
         FROM tweets
         WHERE (text LIKE '%{}%' OR in_reply_to_user_id == {})
         AND datetime(created_at) >= datetime('{}')
@@ -52,21 +50,54 @@ def get_coordinates(user_name, airlines_id, date_start= "2016-03-01 00:00:00", d
     return pd.read_sql_query(query, database)
 
 #Longitude, latitude for incoming volume for American Air
-locations_df = get_coordinates(user_name="American_Air", airlines_id= airlines["American_Air"])
-locations_df = locations_df.dropna() #Only take non NaN values
-locations_df
-fig = gmaps.figure()
-fig.add_layer(gmaps.heatmap_layer(locations_df))
-fig
+df_aa = get_coordinates(user_name="American_Air", airlines_id= airlines["American_Air"])
+df_aa = df_aa.dropna() #Only take non NaN values
+df_aa #Only 525 tweets with location for American Airlines
+df_aa_loc = df_aa[['latitude', 'longitude']]
 
-#airport data 7184 airports, no missing longitude, latitude
-df_airports = pd.read_csv(r'C:\Users\20175876\Documents\DC1 (1)\airports.csv', header=None, sep=',')
-df_airports.columns = ['airport_id', 'name', 'city', 'country', 'iata', 'icao', 'latitude', 'longitude', 'altitude', 'timezone', 'dst', 'tz', 'type airport', 'source']
-df_airports_loc = df_airports[['longitude','latitude', 'altitude']]
+#open sentiment file
+df_sentiment = pd.read_csv(r'C:\Users\20175876\Documents\DC1 (1)\sentiment_AA.csv', sep=',')
+df_sentiment = df_sentiment[['text', 'sentiment']]
+df_sentiment.columns = ['new_text', 'sentiment']
+df_sentiment.head() #815815 rows
 
-#scatter gmap
-airport_layer = gmaps.symbol_layer(df_airports_loc[['latitude', 'longitude']], fill_color='green', stroke_color='green', scale=1)
-fig.add_layer(airport_layer)
-fig
-df_airports_loc['altitude'] = df_airports_loc.loc[df_airports_loc['altitude'] != 0]
-df_airports_loc
+def processTweet(tweet):
+        # process the tweets
+     
+        #Convert to lower case
+        tweet = tweet.lower()
+        #Convert www.* or https?://* to URL
+        tweet = re.sub('((www.[^\s]+)|(https?://[^\s]+))','URL',tweet)
+        #Convert @username to AT_USER
+        tweet = re.sub('@[^\s]+','AT_USER',tweet)
+        #Remove additional white spaces
+        tweet = re.sub('[\s]+', ' ', tweet)
+        #Replace #word with word
+        tweet = re.sub(r'#([^\s]+)', r'\1', tweet)
+        #trim
+        return tweet
+
+#cleaned the text, new column called new_text
+new_text = []
+for tweet in df_aa.text:
+    new_text.append(processTweet(tweet))
+
+df_aa['new_text'] = new_text
+
+#merge two dataframes
+df_loc_sent = df_aa.merge(df_sentiment, how='outer', on='new_text')
+
+df_loc_sent = df_loc_sent[['latitude', 'longitude', 'new_text', 'sentiment']] #remove old text
+df_loc_sent.latitude.isnull().sum().sum() #813654
+df_loc_sent.longitude.isnull().sum().sum() #813654
+df_loc_sent.sentiment.isnull().sum().sum() #50
+
+df_loc_sent = df_loc_sent.dropna(subset=['longitude', 'latitude', 'sentiment'])
+df_loc_sent['sentiment'] = df_loc_sent['sentiment'] + 1 #gmap can only handle positve values
+df_loc_sent.head() #4403 tweets
+
+fig2 = gmaps.figure()
+locations = df_loc_sent[['latitude', 'longitude']]
+weights = df_loc_sent['sentiment']
+fig2.add_layer(gmaps.heatmap_layer(locations, weights=weights, max_intensity=70, point_radius=5, opacity=0.5, gradient=[ 'white', 'red', 'green']))
+fig2

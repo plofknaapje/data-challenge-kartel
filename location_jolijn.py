@@ -15,8 +15,6 @@ analyser = SentimentIntensityAnalyzer()
  
 database = sqlite3.connect('data/myd.sqlite3')
  
- 
- 
 airlines = {
     "KLM" : "56377143",
     "Air_France" : "106062176",

@@ -26,18 +26,21 @@ It saves two .CSV files
 1. sentiment_airlines.csv with the compound sentiment score for every airline.
 2. Labeled_sentiment.csv with the sentiment scores labeled by text representative of the sentiment score.
 
-# Sentiment_distribution_plot
+# Sentiment_distribution_plot.py
 This code counts the number of (slightly/very)positive/(slightly/very)negative/neutral tweets per airlines.
 After this the numbers are put in a stacked bar chart (by hand).
 This creates a nice overview of the distribution of the sentiment.
 
-# Sentiment lexicon
+# Sentiment_Lexicon.py
 This code creates lexicons of words which appear in positive/negative tweets.
 This is done by using dictionaries and with keys as words (in tweets) and values as the number of time a certain word appears.
 
+# volume.py
+This code creates 2 heatmaps: 1 for incoming volume and 1 for outgoing volume (sorted by date)
 
-
-
+# sentiment_heatmap.py
+This code makes a gmap from the longitude, latitude from the incoming volume of American Airlines. 
+The heat on the gmap stands for the sentiment with the greener the higher the sentiment.
 
 
 

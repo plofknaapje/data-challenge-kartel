@@ -10,7 +10,7 @@ import sqlite3
 import pandas as pd
 import re
  
-database = sqlite3.connect('data/myd.sqlite3')
+database = sqlite3.connect(r'C:\Users\20175876\Documents\GitHub\data-challenge-kartel\data\mydb.sqlite3')
 
 #use API key to use gmaps
 gmaps.configure(api_key="AIzaSyDHApYLQ71qXPCyplXzH2bkOlUUNDNWEYo")  

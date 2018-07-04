@@ -8,17 +8,19 @@ from datetime import datetime, timedelta
 import seaborn as sns; sns.set()
 import pandas as pd
 import matplotlib.pyplot as plt
-from textblob import TextBlob
 import re
 import sqlite3
 import numpy as np
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+# Module variable setup
+analyser = SentimentIntensityAnalyzer()
+database = sqlite3.connect('data/mydb.sqlite3')
+
 ## Text
 SMALL_SIZE = 14*2
 MEDIUM_SIZE = 16*2
 BIGGER_SIZE = 20*2
-
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
@@ -27,8 +29,7 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-database = sqlite3.connect('data/mydb.sqlite3')
-
+# Airline twitter information
 airlines_id = ["56377143", "106062176", "18332190", "22536055", "124476322", "26223583", "2182373406", "38676903",
                "1542862735", "253340062", "218730857", "45621423", "20626359"]
 airlines_names = ["KLM", "AirFrance", "British_Airways", "AmericanAir", "Lufthansa", "AirBerlin", "AirBerlin assist",
@@ -39,7 +40,8 @@ airlines_other_names = ["KLM", "AirFrance", "British_Airways", "Lufthansa", "Air
                         "RyanAir", "SingaporeAir", "Qantas", "EtihadAirways", "VirginAtlantic"]
 airlines_dict = {'56377143': 'KLM', '106062176': 'AirFrance', '18332190': 'British_Airways', '22536055': 'AmericanAir', '124476322': 'Lufthansa', '26223583': 'AirBerlin', '2182373406': 'AirBerlin assist', '38676903': 'easyJet', '1542862735': 'RyanAir', '253340062': 'SingaporeAir', '218730857': 'Qantas', '45621423': 'EtihadAirways', '20626359': 'VirginAtlantic'}
 
-analyser = SentimentIntensityAnalyzer()
+# Airline ID
+airlineid = "22536055" # Set to AmericanAir, can be changed to get results for other airlines
 
 class Airline:
     
@@ -629,20 +631,15 @@ def lengthSentiment(airline):
 if __name__ == "__main__":
     # execute only if run as a script
     airlines = {}
-    airlineindex = 3
-    airlineid = airlines_id[airlineindex]
-    for airline in [airlines_id[airlineindex]]:
+    
+    # Code ready for multiple airlines after eachother
+    for airline in [airlineid]:
         airlines[airline] = Airline(airlines_dict[airline], airline)
         Airline.classify()
         df = airlines[airline].airlineSentimentDeltas() 
-
-    for airline in list(airlines.keys()):
-        airline = airlines[airline]
-        print(airline.name)
-        print(airline.conversationLengths)
     
-    lengthAmountGraph(airlines[airlines_id[airlineindex]])
-    
-    unrespondedTweets(airlines[airlines_id[airlineindex]])
-    
-    lengthSentiment(airlines[airlines_id[airlineindex]])    
+        lengthAmountGraph(airlines[airlineid])
+        
+        unrespondedTweets(airlines[airlineid])
+        
+        lengthSentiment(airlines[airlineid])    

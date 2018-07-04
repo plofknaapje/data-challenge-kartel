@@ -28,11 +28,13 @@ It saves two .CSV files
 2. Labeled_sentiment.csv with the sentiment scores labeled by text representative of the sentiment score.
 
 # Sentiment_distribution_plot.py
+This code uses the input "Labeled_sentiment.csv" as data.
 This code counts the number of (slightly/very)positive/(slightly/very)negative/neutral tweets per airlines.
 After this the numbers are put in a stacked bar chart (by hand).
 This creates a nice overview of the distribution of the sentiment.
 
 # Sentiment_Lexicon.py
+This code uses sentiment_AA.csv as data which consists of all tweets to American Airlines with the tweet_text and sentiment per tweet.
 This code creates lexicons of words which appear in positive and negative tweets.
 This is done by using dictionaries  with keys as words (in tweets) and values as the number of time a certain word appears in the negative or positive tweets.
 The tweets that are analyzed are incoming tweets from American Airlines.

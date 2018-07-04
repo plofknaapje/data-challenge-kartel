@@ -16,8 +16,8 @@ import operator
 regex = re.compile('[^a-zA-z ]')
 # Read the CSV file
 df_AA = pd.read_csv('sentiment_AA.csv')
-# Filter the dataframe on tweets that are classified as positive tweets.
-# If you want negative tweets change the filter.
+# Filter the dataframe on tweets that are classified as negative tweets.
+# If you want positive tweets change the filter.
 df_AA_filter = df_AA[df_AA['sentiment'] <= -0.33]
 filter_lst = []
 for i in df_AA_filter['text']:
@@ -29,7 +29,7 @@ df_count['text'] = 0
 df_count['text'] = filter_lst
 df_count.head()
 counted_dict_sentiment = {}
-# Count the words that are with positive sentiment.
+# Count the words that are with negative sentiment.
 def word_count(string):
     my_string = string.lower().split()
     for item in my_string:

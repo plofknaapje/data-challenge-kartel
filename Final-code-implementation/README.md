@@ -33,8 +33,13 @@ This code counts the number of (slightly/very)positive/(slightly/very)negative/n
 After this the numbers are put in a stacked bar chart (by hand).
 This creates a nice overview of the distribution of the sentiment.
 
+# AA_sentiment_to_csv_for_lexicon.py
+This code creates a csv with the sentiment score and tweet text from tweets to AA.
+This CSV is used in the Sentiment_Lexicon.py
+
 # Sentiment_Lexicon.py
 This code uses sentiment_AA.csv as data which consists of all tweets to American Airlines with the tweet_text and sentiment per tweet.
+This CSV is created by AA_sentiment_to_csv_for_lexicon.py
 This code creates lexicons of words which appear in positive and negative tweets.
 This is done by using dictionaries  with keys as words (in tweets) and values as the number of time a certain word appears in the negative or positive tweets.
 The tweets that are analyzed are incoming tweets from American Airlines.
